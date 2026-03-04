@@ -28,7 +28,7 @@ body {
   background: white;
   padding: 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -50,7 +50,9 @@ body {
   font-weight: 500;
 }
 
-.input-group input, .input-group select, .input-group textarea {
+.input-group input,
+.input-group select,
+.input-group textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ccc;
@@ -92,10 +94,25 @@ body {
   font-weight: 600;
 }
 
-.pill.abierto { background-color: #e2e3e5; color: #383d41; }
-.pill.asignado { background-color: #cce5ff; color: #004085; }
-.pill.en-progreso { background-color: #fff3cd; color: #856404; }
-.pill.cerrado { background-color: #d4edda; color: #155724; }
+.pill.abierto {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.pill.asignado {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.pill.en-progreso {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.pill.cerrado {
+  background-color: #d4edda;
+  color: #155724;
+}
 
 /* Dashboard Layout */
 .dashboard-layout {
@@ -139,7 +156,14 @@ body {
   background: white;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Wrapper for horizontal scroll on mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Table */
@@ -149,10 +173,11 @@ body {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #eee;
@@ -161,6 +186,7 @@ body {
 .data-table th {
   background-color: #f1f3f5;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .card {
@@ -168,7 +194,7 @@ body {
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .link {
@@ -176,14 +202,42 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
+
 .link:hover {
   text-decoration: underline;
+}
+
+/* Floating Action Button (FAB) */
+.fab-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
     padding: 1rem;
@@ -191,6 +245,42 @@ body {
     justify-content: space-between;
     align-items: center;
     box-sizing: border-box;
+    position: relative;
+    z-index: 10;
   }
-  .sidebar h2 { margin: 0; }
+
+  .sidebar h2 {
+    margin: 0;
+  }
+
+  .hamburger-btn {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-color: var(--primary-color);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    padding: 1rem 0;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links p {
+    padding: 0.5rem 1rem;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .fab-button {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
 }

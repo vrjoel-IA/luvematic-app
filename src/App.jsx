@@ -76,6 +76,7 @@ function Login({ setAuth }) {
 }
 
 function AdminSidebar({ user }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? { fontWeight: 'bold', color: 'white' } : { opacity: 0.8, color: 'white' };
@@ -87,17 +88,25 @@ function AdminSidebar({ user }) {
 
   return (
     <div className="sidebar" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: 'white', padding: '10px', borderRadius: '4px', marginBottom: '2rem' }}>
-        <img src="/logo.png" style={{ width: '100%', display: 'block' }} alt="LUVEMATIC" />
+      <div style={{ background: 'white', padding: '10px', borderRadius: '4px', marginBottom: '1rem', flexShrink: 0 }}>
+        <img src="/logo.png" style={{ width: '100%', maxWidth: '150px', display: 'block' }} alt="LUVEMATIC" />
       </div>
-      <p className="link" onClick={() => navigate('/admin')} style={isActive('/admin')}>Dashboard</p>
-      <p className="link" onClick={() => navigate('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
-      <p className="link" onClick={() => navigate('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>
-      <p className="link" onClick={() => navigate('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
 
-      <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
-        <p>{user?.nombre}</p>
-        <button onClick={handleLogout} className="btn-danger">Cerrar Sesión</button>
+      <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        ☰
+      </button>
+
+      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <p className="link" onClick={() => navigate('/admin')} style={isActive('/admin')}>Dashboard</p>
+        <p className="link" onClick={() => navigate('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
+        <p className="link" onClick={() => navigate('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>
+        <p className="link" onClick={() => navigate('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
+        <p className="link" onClick={() => navigate('/admin/usuarios')} style={isActive('/admin/usuarios')}>Gestión Usuarios</p>
+
+        <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+          <p>{user?.nombre}</p>
+          <button onClick={handleLogout} className="btn-danger">Cerrar Sesión</button>
+        </div>
       </div>
     </div>
   );
@@ -274,33 +283,40 @@ function AdminAvisos({ user }) {
           <button className="btn-primary" style={{ width: 'auto' }} onClick={() => navigate('/admin/create-aviso')}>+ Crear Aviso</button>
         </div>
 
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Dirección</th>
-              <th>Estado</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(a => (
-              <tr key={a.id_aviso}>
-                <td>#{a.id_aviso}</td>
-                <td>{a.nombre_cliente}</td>
-                <td>{a.direccion_cliente}</td>
-                <td>
-                  <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
-                    {a.estado_aviso}
-                  </span>
-                </td>
-                <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acción</th>
               </tr>
-            ))}
-            {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map(a => (
+                <tr key={a.id_aviso}>
+                  <td>#{a.id_aviso}</td>
+                  <td>{a.nombre_cliente}</td>
+                  <td>{a.direccion_cliente}</td>
+                  <td>
+                    <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
+                      {a.estado_aviso}
+                    </span>
+                  </td>
+                  <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
+                </tr>
+              ))}
+              {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile FAB */}
+        <button className="btn-primary fab-button" onClick={() => navigate('/admin/create-aviso')} style={{ display: window.innerWidth <= 768 ? 'flex' : 'none' }}>
+          +
+        </button>
       </div>
     </div>
   );
@@ -406,29 +422,31 @@ function AdminClientes({ user }) {
             style={{ padding: '0.5rem', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Dirección</th>
-              <th>Teléfono</th>
-              <th>Total Avisos</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((c, idx) => (
-              <tr key={idx}>
-                <td>{c.nombre_cliente}</td>
-                <td>{c.direccion_cliente}</td>
-                <td>{c.telefono_cliente}</td>
-                <td>{c.total_avisos}</td>
-                <td><span className="link" onClick={() => exportClientPDF(c)}>Exportar Historial (PDF)</span></td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Total Avisos</th>
+                <th>Acción</th>
               </tr>
-            ))}
-            {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((c, idx) => (
+                <tr key={idx}>
+                  <td>{c.nombre_cliente}</td>
+                  <td>{c.direccion_cliente}</td>
+                  <td>{c.telefono_cliente}</td>
+                  <td>{c.total_avisos}</td>
+                  <td><span className="link" onClick={() => exportClientPDF(c)}>Exportar Historial (PDF)</span></td>
+                </tr>
+              ))}
+              {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -474,28 +492,116 @@ function AdminProductividad({ user }) {
         <div className="header">
           <h1>Rendimiento de Técnicos (Avisos Cerrados)</h1>
         </div>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Fecha de Resolución</th>
-              <th>Técnico</th>
-              <th>Avisos Cerrados</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.map((s, idx) => (
-              <tr key={idx}>
-                <td>{new Date(s.fecha).toLocaleDateString()}</td>
-                <td>{s.tecnico}</td>
-                <td>{s.total_cerrados}</td>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Fecha de Resolución</th>
+                <th>Técnico</th>
+                <th>Avisos Cerrados</th>
               </tr>
-            ))}
-            {stats.length === 0 && <tr><td colSpan="3" style={{ textAlign: 'center' }}>No hay cierres registrados</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stats.map((s, idx) => (
+                <tr key={idx}>
+                  <td>{new Date(s.fecha).toLocaleDateString()}</td>
+                  <td>{s.tecnico}</td>
+                  <td>{s.total_cerrados}</td>
+                </tr>
+              ))}
+              {stats.length === 0 && <tr><td colSpan="3" style={{ textAlign: 'center' }}>No hay cierres registrados</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+function AdminUsuarios({ user }) {
+  const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchUsuarios = async () => {
+    try {
+      const { data, error } = await supabase.from('Usuarios').select('*').order('fecha_registro', { ascending: false });
+      if (error) throw error;
+      setUsuarios(data || []);
+    } catch (err) { }
+  };
+
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
+
+  const changeRole = async (id, newRole) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('Usuarios').update({ rol: newRole }).eq('id_usuario', id);
+      if (error) throw error;
+      await fetchUsuarios();
+    } catch (err) {
+      alert('Error updating role: ' + err.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="dashboard-layout">
+      <AdminSidebar user={user} />
+      <div className="main-content">
+        <div className="header">
+          <h1>Gestión de Usuarios</h1>
+        </div>
+
+        <p style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>
+          Aquí puedes ver a todas las personas registradas en el sistema y cambiarles su rol.
+          Asigna el rol de <strong>Técnico</strong> a los trabajadores para que puedan recibir avisos.
+        </p>
+
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email / Usuario</th>
+                <th>Rol Actual</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.map((u) => (
+                <tr key={u.id_usuario}>
+                  <td>{u.id_usuario}</td>
+                  <td>{u.nombre_completo}</td>
+                  <td>{u.email}</td>
+                  <td>
+                    <span className="pill" style={{ backgroundColor: u.rol === 'Administrador' ? '#f8d7da' : u.rol === 'Tecnico' ? '#cce5ff' : '#e2e3e5', color: 'black' }}>
+                      {u.rol || 'Usuario'}
+                    </span>
+                  </td>
+                  <td>
+                    <select
+                      value={u.rol || 'Usuario'}
+                      onChange={(e) => changeRole(u.id_usuario, e.target.value)}
+                      disabled={loading || u.id_usuario === user.id}
+                      style={{ padding: '0.25rem' }}
+                    >
+                      <option value="Usuario">Usuario (Sin acceso)</option>
+                      <option value="Tecnico">Técnico</option>
+                      <option value="Administrador">Administrador</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+              {usuarios.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No hay usuarios en el sistema</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function CreateAviso({ user }) {
@@ -1002,13 +1108,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login setAuth={setUser} />} />
+        <Route path="/" element={user ? <Navigate to={user.rol === 'Administrador' ? "/admin" : "/tecnico"} /> : <Login setAuth={setUser} />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={user?.rol === 'Administrador' ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/avisos" element={user?.rol === 'Administrador' ? <AdminAvisos user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/clientes" element={user?.rol === 'Administrador' ? <AdminClientes user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/productividad" element={user?.rol === 'Administrador' ? <AdminProductividad user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/usuarios" element={user?.rol === 'Administrador' ? <AdminUsuarios user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/create-aviso" element={user?.rol === 'Administrador' ? <CreateAviso user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/aviso/:id" element={user?.rol === 'Administrador' ? <AvisoDetailAdmin user={user} /> : <Navigate to="/" />} />
 
