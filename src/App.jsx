@@ -86,24 +86,30 @@ function AdminSidebar({ user }) {
     window.location.href = '/';
   };
 
+  const handleNav = (path) => {
+    navigate(path);
+    setIsMenuOpen(false);
+  };
+
   return (
-    <div className="sidebar" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ background: 'white', padding: '10px', borderRadius: '4px', marginBottom: '1rem', flexShrink: 0 }}>
-        <img src="/logo.png" style={{ width: '100%', maxWidth: '150px', display: 'block' }} alt="LUVEMATIC" />
+    <div className="sidebar">
+      <div className="sidebar-top">
+        <div style={{ background: 'white', padding: '6px 10px', borderRadius: '4px' }}>
+          <img src="/logo.png" style={{ height: '30px', display: 'block' }} alt="LUVEMATIC" />
+        </div>
+        <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {isMenuOpen ? '✕' : '☰'}
+        </button>
       </div>
 
-      <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        ☰
-      </button>
+      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+        <p className="link" onClick={() => handleNav('/admin')} style={isActive('/admin')}>Dashboard</p>
+        <p className="link" onClick={() => handleNav('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
+        <p className="link" onClick={() => handleNav('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>
+        <p className="link" onClick={() => handleNav('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
+        <p className="link" onClick={() => handleNav('/admin/usuarios')} style={isActive('/admin/usuarios')}>Gestión Usuarios</p>
 
-      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <p className="link" onClick={() => navigate('/admin')} style={isActive('/admin')}>Dashboard</p>
-        <p className="link" onClick={() => navigate('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
-        <p className="link" onClick={() => navigate('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>
-        <p className="link" onClick={() => navigate('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
-        <p className="link" onClick={() => navigate('/admin/usuarios')} style={isActive('/admin/usuarios')}>Gestión Usuarios</p>
-
-        <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+        <div className="sidebar-footer">
           <p>{user?.nombre}</p>
           <button onClick={handleLogout} className="btn-danger">Cerrar Sesión</button>
         </div>
@@ -870,7 +876,7 @@ function AvisoDetailAdmin({ user }) {
           <button className="btn-primary" style={{ width: 'auto', backgroundColor: '#dc3545' }} onClick={exportToPDF}>Guardar PDF</button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <div className="detail-grid">
           <div>
             <div className="card">
               <h3>Información del Cliente</h3>

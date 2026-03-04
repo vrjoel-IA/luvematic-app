@@ -114,28 +114,60 @@ body {
   color: #155724;
 }
 
-/* Dashboard Layout */
+/* ========================================
+   Dashboard Layout
+   ======================================== */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
 }
 
+/* ========================================
+   Sidebar — Desktop (default)
+   ======================================== */
 .sidebar {
   width: 250px;
   background-color: var(--primary-color);
   color: white;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  flex-shrink: 0;
 }
 
-.sidebar h2 {
-  font-size: 1.25rem;
-  margin-bottom: 2rem;
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
 }
 
 .main-content {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  min-width: 0;
 }
 
 .header {
@@ -143,12 +175,14 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -157,6 +191,13 @@ body {
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Detail Grid (2-col on desktop, 1-col on mobile) */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
 }
 
 /* Table Wrapper for horizontal scroll on mobile */
@@ -224,59 +265,88 @@ body {
   justify-content: center;
 }
 
-.hamburger-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
+/* ========================================
+   MOBILE (max-width: 768px)
+   ======================================== */
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
   }
 
+  /* Sidebar becomes a compact top bar */
   .sidebar {
     width: 100%;
-    padding: 1rem;
+    min-height: auto;
+    padding: 0.75rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-direction: column;
+  }
+
+  .sidebar-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 10;
+    width: 100%;
+    margin-bottom: 0;
   }
 
-  .sidebar h2 {
-    margin: 0;
-  }
-
+  /* Show hamburger on mobile */
   .hamburger-btn {
     display: block;
   }
 
+  /* Hide nav-links by default on mobile */
   .nav-links {
-    display: none;
+    display: none !important;
     flex-direction: column;
     width: 100%;
     background-color: var(--primary-color);
-    position: absolute;
-    top: 100%;
-    left: 0;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
   }
 
+  /* Show nav-links when open */
   .nav-links.open {
-    display: flex;
+    display: flex !important;
   }
 
   .nav-links p {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 0;
     margin: 0;
-    width: 100%;
-    box-sizing: border-box;
+  }
+
+  .sidebar-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Main content needs less padding on mobile */
+  .main-content {
+    padding: 1rem;
+  }
+
+  /* Header stacks on mobile */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.3rem;
+  }
+
+  /* Detail grid goes single column */
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table td,
+  .data-table th {
+    padding: 0.5rem;
+    font-size: 0.85rem;
   }
 
   .fab-button {
