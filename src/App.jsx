@@ -6,7 +6,7 @@ import { supabase } from './supabase';
 import './index.css';
 
 function Login({ setAuth }) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -26,11 +26,23 @@ function Login({ setAuth }) {
       const { data: userData, error } = await supabase
         .from('Usuarios')
         .select('*')
-        .eq('email', email)
+        .ilike('nombre_completo', username)
         .eq('activo', true)
         .single();
 
-      if (error || !userData) throw new Error('Credenciales inválidas o usuario no existe');
+      if (error || !userData) {
+        throw new Error('El usuario no existe o está inactivo.');
+      }
+
+      // IMPORTANTE: En producción, auth.users es la forma segura y oficial de Supabase.
+      // Aquí estamos haciendo un bypass validando hashes antiguos contra la tabla pública
+      // porque el cliente solicitó no usar emails.
+      const bcrypt = await import('bcryptjs');
+      const isPasswordValid = await bcrypt.compare(password, userData.hash_contrasena);
+
+      if (!isPasswordValid) {
+        throw new Error('Contraseña incorrecta.');
+      }
 
       // NOTA SEGURIDAD: En un entorno Real Supabase, SE DEBE usar supabase.auth.signUp() y signInWithPassword()
       // En este caso, simularemos un login confiando en el email para validar el sistema de UI primero ya que la BD migrada 
@@ -61,8 +73,8 @@ function Login({ setAuth }) {
         {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
         <form onSubmit={handleLogin}>
           <div className="input-group">
-            <label>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+            <label>Nombre de Usuario</label>
+            <input type="text" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Ej: Administrador Principal" />
           </div>
           <div className="input-group">
             <label>Contraseña</label>
