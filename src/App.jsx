@@ -5,63 +5,93 @@ import autoTable from "jspdf-autotable";
 import { supabase } from './supabase';
 import './index.css';
 
+import api from './api';
+
 function Login({ setAuth }) {
-  const [username, setUsername] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nombreCompleto, setNombreCompleto] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
-      // Intentar login asumiendo que el User es tabla 'Usuarios' clásica que migramos
-      // Pero no tenemos la constraseñas desencriptadas al migrar SQL. Supongamos temporalmente un hack o
-      // directamente conectarse a Usuarios para buscar auth custom si no usamos Supabase Auth,
-      // PERO Supabase Auth requiere bcrypt compare, que JS client side no puede hacer puramente fácil vs salt.
+      if (isRegistering) {
+        // --- REGISTRO ---
+        // 1. Sign up with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      // SOLUCIÓN: Buscamos al usuario por email para ver si existe y dejamos "pasar" por ahora si Auth no está configurado
-      // Lo ideal es Supabase.auth.signInWithPassword(), pero no tenemos usuarios ahí todavía creados.
-      // O usaremos una rpc si hubieras creado un hash validator en DB. Para evitar bloquearnos:
+        if (authError) throw authError;
 
-      const { data: userData, error } = await supabase
-        .from('Usuarios')
-        .select('*')
-        .ilike('nombre_completo', username)
-        .eq('activo', true)
-        .single();
+        // 2. Insert into the public Usuarios table for app logic
+        if (authData.user) {
+          const { error: insertError } = await supabase.from('Usuarios').insert([{
+            id_usuario: authData.user.id,
+            nombre_completo: nombreCompleto,
+            email: email,
+            rol: 'Usuario', // Default role until an admin approves them
+            activo: true
+          }]);
 
-      if (error || !userData) {
-        throw new Error('El usuario no existe o está inactivo.');
-      }
+          if (insertError) {
+             console.error("Error creating user profile:", insertError);
+             throw new Error("Cuenta creada, pero hubo un error al configurar el perfil. Contacte al administrador.");
+          }
+        }
 
-      // IMPORTANTE: En producción, auth.users es la forma segura y oficial de Supabase.
-      // Aquí estamos haciendo un bypass validando hashes antiguos contra la tabla pública
-      // porque el cliente solicitó no usar emails.
-      const bcrypt = await import('bcryptjs');
-      const isPasswordValid = await bcrypt.compare(password, userData.hash_contrasena);
+        alert("Registro exitoso. Ahora puedes iniciar sesión.");
+        setIsRegistering(false);
+        setPassword('');
 
-      if (!isPasswordValid) {
-        throw new Error('Contraseña incorrecta.');
-      }
-
-      // NOTA SEGURIDAD: En un entorno Real Supabase, SE DEBE usar supabase.auth.signUp() y signInWithPassword()
-      // En este caso, simularemos un login confiando en el email para validar el sistema de UI primero ya que la BD migrada 
-      // tiene Hashes Bcrypt antiguos en texto.
-
-      const fakeToken = "supabase-fake-token-" + userData.id_usuario;
-      const userPayload = { id: userData.id_usuario, rol: userData.rol, nombre: userData.nombre_completo };
-
-      localStorage.setItem('luvematic_token', fakeToken);
-      localStorage.setItem('luvematic_user', JSON.stringify(userPayload));
-      setAuth(userPayload);
-
-      if (userData.rol === 'Administrador') {
-        navigate('/admin');
       } else {
-        navigate('/tecnico');
+        // --- LOGIN ---
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (authError) throw authError;
+
+        // Fetch user profile to get roles
+        const { data: userData, error: profileError } = await supabase
+          .from('Usuarios')
+          .select('*')
+          .eq('id_usuario', authData.user.id)
+          .single();
+
+        if (profileError || !userData) {
+          throw new Error('Perfil de usuario no encontrado.');
+        }
+
+        if (!userData.activo) {
+          throw new Error('El usuario está inactivo.');
+        }
+
+        const userPayload = { id: userData.id_usuario, rol: userData.rol, nombre: userData.nombre_completo };
+        localStorage.setItem('luvematic_user', JSON.stringify(userPayload));
+        setAuth(userPayload);
+
+        if (userData.rol === 'Administrador') {
+          navigate('/admin');
+        } else if (userData.rol === 'Tecnico') {
+          navigate('/tecnico');
+        } else {
+           setError("Tu cuenta aún no tiene permisos asignados. Contacta al administrador.");
+        }
       }
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión');
+      setError(err.message || 'Error en la autenticación');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,19 +99,64 @@ function Login({ setAuth }) {
     <div className="auth-container">
       <div className="login-card">
         <img src="/logo.png" alt="LUVEMATIC" className="logo" />
-        <h2 style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Gestión de Avisos</h2>
+        <h2 style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+          {isRegistering ? 'Crear Cuenta Nueva' : 'Gestión de Avisos'}
+        </h2>
+        
         {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-        <form onSubmit={handleLogin}>
+        
+        <form onSubmit={handleAuth}>
+          {isRegistering && (
+            <div className="input-group">
+              <label>Nombre Completo</label>
+              <input 
+                type="text" 
+                value={nombreCompleto} 
+                onChange={e => setNombreCompleto(e.target.value)} 
+                required={isRegistering} 
+                placeholder="Ej: Juan Pérez" 
+              />
+            </div>
+          )}
+          
           <div className="input-group">
-            <label>Nombre de Usuario</label>
-            <input type="text" value={username} onChange={e => setUsername(e.target.value)} required placeholder="Ej: Administrador Principal" />
+            <label>Email</label>
+            <input 
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              required 
+              placeholder="tu@email.com" 
+            />
           </div>
+          
           <div className="input-group">
             <label>Contraseña</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+            <input 
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              required 
+              minLength="6"
+            />
           </div>
-          <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>Iniciar Sesión</button>
+          
+          <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }} disabled={loading}>
+            {loading ? 'Procesando...' : (isRegistering ? 'Registrarse' : 'Iniciar Sesión')}
+          </button>
         </form>
+
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            {isRegistering ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}
+          </p>
+          <button 
+            type="button" 
+            onClick={() => { setIsRegistering(!isRegistering); setError(''); }} 
+            style={{ background: 'none', border: 'none', color: '#0A2342', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}>
+            {isRegistering ? 'Inicia sesión aquí' : 'Regístrate aquí'}
+          </button>
+        </div>
       </div>
     </div>
   );
