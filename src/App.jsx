@@ -211,6 +211,7 @@ function AdminSidebar({ user }) {
 
 function AdminDashboard({ user }) {
   const [avisos, setAvisos] = useState([]);
+  const [activeFilter, setActiveFilter] = useState(null); // 'Nuevos', 'Asignados', 'En Progreso', 'Cerrados'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -235,6 +236,19 @@ function AdminDashboard({ user }) {
     cerrados: avisos.filter(a => a.estado_aviso === 'Cerrado').length,
   };
 
+  const handleFilterClick = (filterName) => {
+    setActiveFilter(activeFilter === filterName ? null : filterName);
+  };
+
+  const filteredAvisos = avisos.filter(a => {
+    if (!activeFilter) return true;
+    if (activeFilter === 'Nuevos') return a.estado_aviso === 'Abierto';
+    if (activeFilter === 'Asignados') return a.estado_aviso === 'Asignado';
+    if (activeFilter === 'En Progreso') return a.estado_aviso === 'En Progreso';
+    if (activeFilter === 'Cerrados') return a.estado_aviso === 'Cerrado';
+    return true;
+  });
+
   return (
     <div className="dashboard-layout">
       <AdminSidebar user={user} />
@@ -245,40 +259,50 @@ function AdminDashboard({ user }) {
         </div>
 
         <div className="kpi-grid">
-          <div className="kpi-card"><h3>{kpis.nuevos}</h3><p style={{ color: 'var(--text-muted)' }}>Nuevos Avisos</p></div>
-          <div className="kpi-card"><h3>{kpis.asignados}</h3><p style={{ color: 'var(--text-muted)' }}>Asignados</p></div>
-          <div className="kpi-card"><h3>{kpis.enProgreso}</h3><p style={{ color: 'var(--text-muted)' }}>En Progreso</p></div>
-          <div className="kpi-card"><h3>{kpis.cerrados}</h3><p style={{ color: 'var(--text-muted)' }}>Cerrados</p></div>
+          <div className={`kpi-card clickable ${activeFilter === 'Nuevos' ? 'active' : ''}`} onClick={() => handleFilterClick('Nuevos')}>
+            <h3>{kpis.nuevos}</h3><p style={{ color: 'var(--text-muted)' }}>Nuevos Avisos</p>
+          </div>
+          <div className={`kpi-card clickable ${activeFilter === 'Asignados' ? 'active' : ''}`} onClick={() => handleFilterClick('Asignados')}>
+            <h3>{kpis.asignados}</h3><p style={{ color: 'var(--text-muted)' }}>Asignados</p>
+          </div>
+          <div className={`kpi-card clickable ${activeFilter === 'En Progreso' ? 'active' : ''}`} onClick={() => handleFilterClick('En Progreso')}>
+            <h3>{kpis.enProgreso}</h3><p style={{ color: 'var(--text-muted)' }}>En Progreso</p>
+          </div>
+          <div className={`kpi-card clickable ${activeFilter === 'Cerrados' ? 'active' : ''}`} onClick={() => handleFilterClick('Cerrados')}>
+            <h3>{kpis.cerrados}</h3><p style={{ color: 'var(--text-muted)' }}>Cerrados</p>
+          </div>
         </div>
 
-        <h3>Actividad Reciente de Avisos</h3>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Dirección</th>
-              <th>Estado</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {avisos.slice(0, 10).map(a => (
-              <tr key={a.id_aviso}>
-                <td>#{a.id_aviso}</td>
-                <td>{a.nombre_cliente}</td>
-                <td>{a.direccion_cliente}</td>
-                <td>
-                  <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
-                    {a.estado_aviso}
-                  </span>
-                </td>
-                <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
+        <h3>{activeFilter ? `Avisos Registrados - Filtro: ${activeFilter}` : 'Actividad Reciente de Avisos'}</h3>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acción</th>
               </tr>
-            ))}
-            {avisos.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No hay avisos registrados</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredAvisos.slice(0, activeFilter ? undefined : 10).map(a => (
+                <tr key={a.id_aviso}>
+                  <td>#{a.id_aviso}</td>
+                  <td>{a.nombre_cliente}</td>
+                  <td>{a.direccion_cliente}</td>
+                  <td>
+                    <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
+                      {a.estado_aviso}
+                    </span>
+                  </td>
+                  <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
+                </tr>
+              ))}
+              {filteredAvisos.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No hay avisos registrados</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -857,6 +881,8 @@ function AvisoDetailAdmin({ user }) {
   const [aviso, setAviso] = useState(state?.aviso || null);
   const [tecnicos, setTecnicos] = useState([]);
   const [fotos, setFotos] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
 
   const [form, setForm] = useState({
     estado_aviso: '',
@@ -870,6 +896,13 @@ function AvisoDetailAdmin({ user }) {
         estado_aviso: aviso.estado_aviso,
         id_tecnico_asignado: aviso.id_tecnico_asignado || '',
         observaciones_cierre: aviso.observaciones_cierre || ''
+      });
+      setEditForm({
+        nombre_cliente: aviso.nombre_cliente,
+        direccion_cliente: aviso.direccion_cliente,
+        telefono_cliente: aviso.telefono_cliente || '',
+        tipo_puerta: aviso.tipo_puerta,
+        descripcion_problema: aviso.descripcion_problema
       });
     }
   }, [aviso]);
@@ -920,6 +953,33 @@ function AvisoDetailAdmin({ user }) {
       newStatus = 'Asignado'; // Auto-change to Assigned when tech is selected
     }
     setForm({ ...form, id_tecnico_asignado: techId, estado_aviso: newStatus });
+  };
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Cancel edit - reset form
+      setEditForm({
+        nombre_cliente: aviso.nombre_cliente,
+        direccion_cliente: aviso.direccion_cliente,
+        telefono_cliente: aviso.telefono_cliente || '',
+        tipo_puerta: aviso.tipo_puerta,
+        descripcion_problema: aviso.descripcion_problema
+      });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleSaveDetails = async () => {
+    try {
+      const { error } = await supabase.from('Avisos').update(editForm).eq('id_aviso', id);
+      if (error) throw error;
+
+      setAviso({ ...aviso, ...editForm });
+      setIsEditing(false);
+      alert('Detalles del aviso actualizados guardados');
+    } catch (err) {
+      alert('Error al guardar los detalles del aviso');
+    }
   };
 
   const exportToPDF = () => {
@@ -974,16 +1034,68 @@ function AvisoDetailAdmin({ user }) {
         <div className="detail-grid">
           <div>
             <div className="card">
-              <h3>Información del Cliente</h3>
-              <p><strong>Nombre:</strong> {aviso.nombre_cliente}</p>
-              <p><strong>Dirección:</strong> {aviso.direccion_cliente}</p>
-              <p><strong>Teléfono:</strong> {aviso.telefono_cliente}</p>
-              <p><strong>Puerta:</strong> {aviso.tipo_puerta}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0 }}>Información del Cliente</h3>
+                {aviso.estado_aviso !== 'Cerrado' && !isEditing && (
+                  <button onClick={handleEditToggle} className="btn-primary" style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>Editar Datos</button>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>Nombre:</label>
+                    <input type="text" value={editForm.nombre_cliente} onChange={e => setEditForm({ ...editForm, nombre_cliente: e.target.value })} />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>Dirección:</label>
+                    <input type="text" value={editForm.direccion_cliente} onChange={e => setEditForm({ ...editForm, direccion_cliente: e.target.value })} />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>Teléfono:</label>
+                    <input type="text" value={editForm.telefono_cliente} onChange={e => setEditForm({ ...editForm, telefono_cliente: e.target.value })} />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label>Puerta:</label>
+                    <select value={editForm.tipo_puerta} onChange={e => setEditForm({ ...editForm, tipo_puerta: e.target.value })}>
+                      <option value="Seccional">Seccional</option>
+                      <option value="Enrollable">Enrollable</option>
+                      <option value="Corredera">Corredera</option>
+                      <option value="Basculante">Basculante</option>
+                      <option value="Puerta de cristal">Puerta de cristal</option>
+                      <option value="Puerta de guillotina">Puerta de guillotina</option>
+                      <option value="Telescópica">Telescópica</option>
+                      <option value="Peatonal">Peatonal</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p><strong>Nombre:</strong> {aviso.nombre_cliente}</p>
+                  <p><strong>Dirección:</strong> {aviso.direccion_cliente}</p>
+                  <p><strong>Teléfono:</strong> {aviso.telefono_cliente}</p>
+                  <p><strong>Puerta:</strong> {aviso.tipo_puerta}</p>
+                </>
+              )}
             </div>
+
             <div className="card">
               <h3>Descripción del Problema</h3>
-              <p>{aviso.descripcion_problema}</p>
+              {isEditing ? (
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <textarea rows="4" value={editForm.descripcion_problema} onChange={e => setEditForm({ ...editForm, descripcion_problema: e.target.value })}></textarea>
+                </div>
+              ) : (
+                <p>{aviso.descripcion_problema}</p>
+              )}
             </div>
+
+            {isEditing && (
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                <button onClick={handleEditToggle} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
+                <button onClick={handleSaveDetails} className="btn-primary" style={{ width: 'auto', backgroundColor: 'var(--accent-green)' }}>Guardar Cambios</button>
+              </div>
+            )}
             {fotos.length > 0 && (
               <div className="card">
                 <h3>Fotos del Trabajo</h3>
