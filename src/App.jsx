@@ -80,7 +80,7 @@ function Login({ setAuth }) {
         localStorage.setItem('luvematic_user', JSON.stringify(userPayload));
         setAuth(userPayload);
 
-        if (userData.rol === 'Administrador') {
+        if (userData.rol === 'Administrador' || userData.rol === 'Direccion') {
           navigate('/admin');
         } else if (userData.rol === 'Tecnico') {
           navigate('/tecnico');
@@ -193,8 +193,12 @@ function AdminSidebar({ user }) {
         <p className="link" onClick={() => handleNav('/admin')} style={isActive('/admin')}>Dashboard</p>
         <p className="link" onClick={() => handleNav('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
         <p className="link" onClick={() => handleNav('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>
-        <p className="link" onClick={() => handleNav('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
-        <p className="link" onClick={() => handleNav('/admin/usuarios')} style={isActive('/admin/usuarios')}>Gestión Usuarios</p>
+        {user?.rol === 'Direccion' && (
+          <>
+            <p className="link" onClick={() => handleNav('/admin/productividad')} style={isActive('/admin/productividad')}>Rendimiento Técnicos</p>
+            <p className="link" onClick={() => handleNav('/admin/usuarios')} style={isActive('/admin/usuarios')}>Gestión Usuarios</p>
+          </>
+        )}
 
         <div className="sidebar-footer">
           <p>{user?.nombre}</p>
@@ -673,7 +677,7 @@ function AdminUsuarios({ user }) {
                   <td>{u.nombre_completo}</td>
                   <td>{u.email}</td>
                   <td>
-                    <span className="pill" style={{ backgroundColor: u.rol === 'Administrador' ? '#f8d7da' : u.rol === 'Tecnico' ? '#cce5ff' : '#e2e3e5', color: 'black' }}>
+                    <span className="pill" style={{ backgroundColor: u.rol === 'Administrador' ? '#f8d7da' : u.rol === 'Direccion' ? '#d4edda' : u.rol === 'Tecnico' ? '#cce5ff' : '#e2e3e5', color: 'black' }}>
                       {u.rol || 'Usuario'}
                     </span>
                   </td>
@@ -687,6 +691,7 @@ function AdminUsuarios({ user }) {
                       <option value="Usuario">Usuario (Sin acceso)</option>
                       <option value="Tecnico">Técnico</option>
                       <option value="Administrador">Administrador</option>
+                      <option value="Direccion">Dirección</option>
                     </select>
                   </td>
                 </tr>
@@ -1205,7 +1210,7 @@ function PendingApproval({ setAuth }) {
         <img src="/logo.png" alt="LUVEMATIC" className="logo" />
         <h2 style={{ color: 'var(--text-muted)' }}>Cuenta en Revisión</h2>
         <p style={{ marginTop: '1rem', marginBottom: '2rem' }}>
-          Tu cuenta ha sido creada exitosamente, pero aún no tiene permisos asignados (Técnico o Administrador).
+          Tu cuenta ha sido creada exitosamente, pero aún no tiene permisos asignados (Técnico, Administrador o Dirección).
           Por favor, espera a que un administrador valide tu acceso.
         </p>
         <button onClick={() => {
@@ -1227,7 +1232,7 @@ function App() {
       <Routes>
         <Route path="/" element={
           user ? (
-            user.rol === 'Administrador' ? <Navigate to="/admin" /> :
+            (user.rol === 'Administrador' || user.rol === 'Direccion') ? <Navigate to="/admin" /> :
               user.rol === 'Tecnico' ? <Navigate to="/tecnico" /> :
                 <Navigate to="/espera" />
           ) : <Login setAuth={setUser} />
@@ -1235,14 +1240,16 @@ function App() {
 
         <Route path="/espera" element={user && user.rol === 'Usuario' ? <PendingApproval setAuth={setUser} /> : <Navigate to="/" />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={user?.rol === 'Administrador' ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/avisos" element={user?.rol === 'Administrador' ? <AdminAvisos user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/clientes" element={user?.rol === 'Administrador' ? <AdminClientes user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/productividad" element={user?.rol === 'Administrador' ? <AdminProductividad user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/usuarios" element={user?.rol === 'Administrador' ? <AdminUsuarios user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/create-aviso" element={user?.rol === 'Administrador' ? <CreateAviso user={user} /> : <Navigate to="/" />} />
-        <Route path="/admin/aviso/:id" element={user?.rol === 'Administrador' ? <AvisoDetailAdmin user={user} /> : <Navigate to="/" />} />
+        {/* Admin & Direccion Shared Routes */}
+        <Route path="/admin" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/avisos" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminAvisos user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/clientes" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminClientes user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/create-aviso" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <CreateAviso user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/aviso/:id" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AvisoDetailAdmin user={user} /> : <Navigate to="/" />} />
+
+        {/* Direccion Only Routes */}
+        <Route path="/admin/productividad" element={user?.rol === 'Direccion' ? <AdminProductividad user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/usuarios" element={user?.rol === 'Direccion' ? <AdminUsuarios user={user} /> : <Navigate to="/" />} />
 
         {/* Tech Routes */}
         <Route path="/tecnico" element={user?.rol === 'Tecnico' ? <TechDashboard user={user} /> : <Navigate to="/" />} />
