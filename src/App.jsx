@@ -617,8 +617,11 @@ function AdminUsuarios({ user }) {
 
   const fetchUsuarios = async () => {
     try {
-      const { data, error } = await supabase.from('Usuarios').select('*').order('fecha_registro', { ascending: false });
-      if (error) throw error;
+      const { data, error } = await supabase.from('Usuarios').select('*').order('created_at', { ascending: false });
+      if (error) {
+        console.error("Error fetching usuarios:", error);
+        throw error;
+      }
       setUsuarios(data || []);
     } catch (err) { }
   };
