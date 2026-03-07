@@ -43,8 +43,8 @@ function Login({ setAuth }) {
           }]);
 
           if (insertError) {
-             console.error("Error creating user profile:", insertError);
-             throw new Error("Cuenta creada, pero hubo un error al configurar el perfil. Contacte al administrador.");
+            console.error("Error creating user profile:", insertError);
+            throw new Error("LUVEMATIC: " + (insertError.message || insertError.details || JSON.stringify(insertError)));
           }
         }
 
@@ -85,7 +85,7 @@ function Login({ setAuth }) {
         } else if (userData.rol === 'Tecnico') {
           navigate('/tecnico');
         } else {
-           setError("Tu cuenta aún no tiene permisos asignados. Contacta al administrador.");
+          setError("Tu cuenta aún no tiene permisos asignados. Contacta al administrador.");
         }
       }
     } catch (err) {
@@ -102,45 +102,45 @@ function Login({ setAuth }) {
         <h2 style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
           {isRegistering ? 'Crear Cuenta Nueva' : 'Gestión de Avisos'}
         </h2>
-        
+
         {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-        
+
         <form onSubmit={handleAuth}>
           {isRegistering && (
             <div className="input-group">
               <label>Nombre Completo</label>
-              <input 
-                type="text" 
-                value={nombreCompleto} 
-                onChange={e => setNombreCompleto(e.target.value)} 
-                required={isRegistering} 
-                placeholder="Ej: Juan Pérez" 
+              <input
+                type="text"
+                value={nombreCompleto}
+                onChange={e => setNombreCompleto(e.target.value)}
+                required={isRegistering}
+                placeholder="Ej: Juan Pérez"
               />
             </div>
           )}
-          
+
           <div className="input-group">
             <label>Email</label>
-            <input 
-              type="email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
-              placeholder="tu@email.com" 
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="tu@email.com"
             />
           </div>
-          
+
           <div className="input-group">
             <label>Contraseña</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
               minLength="6"
             />
           </div>
-          
+
           <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }} disabled={loading}>
             {loading ? 'Procesando...' : (isRegistering ? 'Registrarse' : 'Iniciar Sesión')}
           </button>
@@ -150,9 +150,9 @@ function Login({ setAuth }) {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             {isRegistering ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}
           </p>
-          <button 
-            type="button" 
-            onClick={() => { setIsRegistering(!isRegistering); setError(''); }} 
+          <button
+            type="button"
+            onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
             style={{ background: 'none', border: 'none', color: '#0A2342', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}>
             {isRegistering ? 'Inicia sesión aquí' : 'Regístrate aquí'}
           </button>
@@ -1195,13 +1195,42 @@ function TechAvisoDetail() {
   )
 }
 
+function PendingApproval({ setAuth }) {
+  return (
+    <div className="auth-container">
+      <div className="login-card" style={{ textAlign: 'center' }}>
+        <img src="/logo.png" alt="LUVEMATIC" className="logo" />
+        <h2 style={{ color: 'var(--text-muted)' }}>Cuenta en Revisión</h2>
+        <p style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+          Tu cuenta ha sido creada exitosamente, pero aún no tiene permisos asignados (Técnico o Administrador).
+          Por favor, espera a que un administrador valide tu acceso.
+        </p>
+        <button onClick={() => {
+          localStorage.clear();
+          setAuth(null);
+        }} className="btn-primary">
+          Cerrar Sesión / Volver a inicio
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('luvematic_user')));
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to={user.rol === 'Administrador' ? "/admin" : "/tecnico"} /> : <Login setAuth={setUser} />} />
+        <Route path="/" element={
+          user ? (
+            user.rol === 'Administrador' ? <Navigate to="/admin" /> :
+              user.rol === 'Tecnico' ? <Navigate to="/tecnico" /> :
+                <Navigate to="/espera" />
+          ) : <Login setAuth={setUser} />
+        } />
+
+        <Route path="/espera" element={user && user.rol === 'Usuario' ? <PendingApproval setAuth={setUser} /> : <Navigate to="/" />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={user?.rol === 'Administrador' ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
