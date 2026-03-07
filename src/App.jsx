@@ -310,7 +310,8 @@ function AdminDashboard({ user }) {
 
 function AdminAvisos({ user }) {
   const [avisos, setAvisos] = useState([]);
-  const [search, setSearch] = useState('');
+  const location = useLocation();
+  const [search, setSearch] = useState(location.state?.preSearch || '');
   const [statusFilter, setStatusFilter] = useState('Todos'); // Todos, Abiertos/Pendientes, Cerrados
   const navigate = useNavigate();
 
@@ -446,6 +447,7 @@ function AdminAvisos({ user }) {
 function AdminClientes({ user }) {
   const [clientes, setClientes] = useState([]);
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchClientes = async () => {
@@ -556,12 +558,12 @@ function AdminClientes({ user }) {
             </thead>
             <tbody>
               {filtered.map((c, idx) => (
-                <tr key={idx}>
+                <tr key={idx} onClick={() => navigate('/admin/avisos', { state: { preSearch: c.nombre_cliente } })} style={{ cursor: 'pointer' }} className="hover-bg">
                   <td>{c.nombre_cliente}</td>
                   <td>{c.direccion_cliente}</td>
                   <td>{c.telefono_cliente}</td>
                   <td>{c.total_avisos}</td>
-                  <td><span className="link" onClick={() => exportClientPDF(c)}>Exportar Historial (PDF)</span></td>
+                  <td><span className="link" onClick={(e) => { e.stopPropagation(); exportClientPDF(c); }}>Exportar Historial (PDF)</span></td>
                 </tr>
               ))}
               {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}

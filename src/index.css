@@ -283,6 +283,10 @@ h6 {
   text-decoration: underline;
 }
 
+.hover-bg:hover {
+  background-color: #f1f3f5;
+}
+
 /* Floating Action Button (FAB) */
 .fab-button {
   position: fixed;
