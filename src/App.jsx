@@ -349,20 +349,23 @@ function AdminAvisos({ user }) {
 
   const exportMonthlyPDF = () => {
     const doc = new jsPDF();
-    // Header bar
-    doc.setFillColor(10, 35, 66);
-    doc.rect(0, 0, 210, 32, 'F');
-    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text('Reporte Mensual de Avisos', 60, 18);
+    // Header - white background with logo and blue text
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+    doc.setTextColor(10, 35, 66);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('Reporte Mensual de Avisos', 70, 22);
+    doc.setFont(undefined, 'normal');
+    doc.setDrawColor(10, 35, 66);
+    doc.setLineWidth(0.8);
+    doc.line(10, 38, 200, 38);
     doc.setTextColor(0, 0, 0);
 
     const now = new Date();
     const mesNombre = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     doc.setFontSize(11);
-    doc.text(`Período: ${mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)}`, 14, 42);
-    doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 48);
+    doc.text(`Período: ${mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)}`, 14, 46);
+    doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 52);
 
     const currentMonthAvisos = filtered.filter(a => {
       const date = new Date(a.fecha_creacion);
@@ -382,7 +385,7 @@ function AdminAvisos({ user }) {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 55,
+      startY: 60,
       headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [240, 247, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
@@ -526,20 +529,23 @@ function AdminClientes({ user }) {
 
       const doc = new jsPDF();
       const now = new Date();
-      // Header bar
-      doc.setFillColor(10, 35, 66);
-      doc.rect(0, 0, 210, 32, 'F');
-      try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
-      doc.text('Historial de Cliente', 60, 18);
+      // Header - white background with logo and blue text
+      try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+      doc.setTextColor(10, 35, 66);
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Historial de Cliente', 70, 22);
+      doc.setFont(undefined, 'normal');
+      doc.setDrawColor(10, 35, 66);
+      doc.setLineWidth(0.8);
+      doc.line(10, 38, 200, 38);
       doc.setTextColor(0, 0, 0);
 
       doc.setFontSize(11);
-      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 42);
-      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 48);
-      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 54);
-      doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 60);
+      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 46);
+      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 52);
+      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 58);
+      doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 64);
 
       const tableColumn = ["ID", "Fecha", "Tipo Puerta", "Fallo", "Estado"];
       const tableRows = historial.map(h => ([
@@ -553,7 +559,7 @@ function AdminClientes({ user }) {
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 68,
+        startY: 72,
         headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [240, 247, 255] },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -1035,43 +1041,46 @@ function AvisoDetailAdmin({ user }) {
   const exportToPDF = () => {
     const doc = new jsPDF();
     const now = new Date();
-    // Header bar
-    doc.setFillColor(10, 35, 66);
-    doc.rect(0, 0, 210, 32, 'F');
-    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 60, 18);
+    // Header - white background with logo and blue text
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+    doc.setTextColor(10, 35, 66);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 70, 22);
+    doc.setFont(undefined, 'normal');
+    doc.setDrawColor(10, 35, 66);
+    doc.setLineWidth(0.8);
+    doc.line(10, 38, 200, 38);
     doc.setTextColor(0, 0, 0);
 
     // Client info card
     doc.setFillColor(240, 247, 255);
-    doc.roundedRect(10, 38, 190, 36, 3, 3, 'F');
+    doc.roundedRect(10, 44, 190, 36, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('Información del Cliente', 14, 46);
+    doc.text('Información del Cliente', 14, 52);
     doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`Nombre: ${aviso.nombre_cliente}`, 14, 54);
-    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 60);
-    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 110, 54);
-    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 110, 60);
-    doc.text(`Fecha creación: ${new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')}`, 14, 68);
+    doc.text(`Nombre: ${aviso.nombre_cliente}`, 14, 60);
+    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 66);
+    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 110, 60);
+    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 110, 66);
+    doc.text(`Fecha creación: ${new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')}`, 14, 74);
 
     // Status card
     doc.setFillColor(240, 247, 255);
-    doc.roundedRect(10, 80, 190, 18, 3, 3, 'F');
+    doc.roundedRect(10, 86, 190, 18, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('Estado y Asignación', 14, 88);
+    doc.text('Estado y Asignación', 14, 94);
     doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 94);
+    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 100);
     const asignadoNombre = tecnicos.find(t => t.id_usuario === aviso.id_tecnico_asignado)?.nombre_completo || 'Sin asignar';
-    doc.text(`Técnico Asignado: ${asignadoNombre}`, 110, 94);
+    doc.text(`Técnico Asignado: ${asignadoNombre}`, 110, 100);
 
     // Problem description
-    let currentY = 108;
+    let currentY = 114;
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(10, 35, 66);
@@ -1295,6 +1304,9 @@ function TechDashboard({ user }) {
             <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>{a.estado_aviso}</span>
           </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.direccion_cliente}</p>
+          {viewAll && a.Usuarios?.nombre_completo && (
+            <p style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: 600, margin: '0.3rem 0' }}>👤 Asignado a: {a.Usuarios.nombre_completo}</p>
+          )}
           <p style={{ marginTop: '0.5rem' }}>{a.descripcion_problema}</p>
         </div>
       ))}
