@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocat
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from './supabase';
+import { LOGO_BASE64 } from './logo';
 import './index.css';
 
 import api from './api';
@@ -281,6 +282,7 @@ function AdminDashboard({ user }) {
                 <th>ID</th>
                 <th>Cliente</th>
                 <th>Dirección</th>
+                <th>Técnico</th>
                 <th>Estado</th>
                 <th>Acción</th>
               </tr>
@@ -291,6 +293,7 @@ function AdminDashboard({ user }) {
                   <td>#{a.id_aviso}</td>
                   <td>{a.nombre_cliente}</td>
                   <td>{a.direccion_cliente}</td>
+                  <td>{a.Usuarios?.nombre_completo || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Sin asignar</span>}</td>
                   <td>
                     <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
                       {a.estado_aviso}
@@ -299,7 +302,7 @@ function AdminDashboard({ user }) {
                   <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
                 </tr>
               ))}
-              {filteredAvisos.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No hay avisos registrados</td></tr>}
+              {filteredAvisos.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center' }}>No hay avisos registrados</td></tr>}
             </tbody>
           </table>
         </div>
@@ -346,36 +349,59 @@ function AdminAvisos({ user }) {
 
   const exportMonthlyPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("LUVEMATIC - Reporte Mensual de Avisos", 14, 22);
+    // Header bar
+    doc.setFillColor(10, 35, 66);
+    doc.rect(0, 0, 210, 32, 'F');
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('Reporte Mensual de Avisos', 60, 18);
+    doc.setTextColor(0, 0, 0);
+
+    const now = new Date();
+    const mesNombre = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    doc.setFontSize(11);
+    doc.text(`Período: ${mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)}`, 14, 42);
+    doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 48);
 
     const currentMonthAvisos = filtered.filter(a => {
       const date = new Date(a.fecha_creacion);
-      const now = new Date();
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     });
 
-    const tableColumn = ["ID", "Cliente", "Dirección", "Estado", "Fecha"];
-    const tableRows = [];
-
-    currentMonthAvisos.forEach(aviso => {
-      const rowData = [
-        aviso.id_aviso,
-        aviso.nombre_cliente,
-        aviso.direccion_cliente,
-        aviso.estado_aviso,
-        new Date(aviso.fecha_creacion).toLocaleDateString()
-      ];
-      tableRows.push(rowData);
-    });
+    const tableColumn = ["ID", "Cliente", "Dirección", "Técnico", "Estado", "Fecha"];
+    const tableRows = currentMonthAvisos.map(aviso => ([
+      aviso.id_aviso,
+      aviso.nombre_cliente,
+      aviso.direccion_cliente,
+      aviso.Usuarios?.nombre_completo || 'Sin asignar',
+      aviso.estado_aviso,
+      new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')
+    ]));
 
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 30,
+      startY: 55,
+      headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [240, 247, 255] },
+      styles: { fontSize: 9, cellPadding: 4 },
     });
 
-    doc.save("Reporte_Mensual_Avisos.pdf");
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFillColor(10, 35, 66);
+      doc.rect(0, 285, 210, 12, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(255, 255, 255);
+      doc.text('LUVEMATIC © ' + now.getFullYear() + ' — Documento generado automáticamente', 14, 291);
+      doc.text(`Página ${i} de ${pageCount}`, 180, 291);
+      doc.setTextColor(0, 0, 0);
+    }
+
+    doc.save('Reporte_Mensual_Avisos.pdf');
   }
 
   return (
@@ -412,6 +438,7 @@ function AdminAvisos({ user }) {
                 <th>ID</th>
                 <th>Cliente</th>
                 <th>Dirección</th>
+                <th>Técnico</th>
                 <th>Estado</th>
                 <th>Acción</th>
               </tr>
@@ -422,6 +449,7 @@ function AdminAvisos({ user }) {
                   <td>#{a.id_aviso}</td>
                   <td>{a.nombre_cliente}</td>
                   <td>{a.direccion_cliente}</td>
+                  <td>{a.Usuarios?.nombre_completo || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Sin asignar</span>}</td>
                   <td>
                     <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
                       {a.estado_aviso}
@@ -430,7 +458,7 @@ function AdminAvisos({ user }) {
                   <td><span className="link" onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })}>Ver Detalle</span></td>
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
             </tbody>
           </table>
         </div>
@@ -497,32 +525,52 @@ function AdminClientes({ user }) {
       if (error) throw error;
 
       const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text(`LUVEMATIC - Historial de Cliente`, 14, 22);
+      const now = new Date();
+      // Header bar
+      doc.setFillColor(10, 35, 66);
+      doc.rect(0, 0, 210, 32, 'F');
+      try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.text('Historial de Cliente', 60, 18);
+      doc.setTextColor(0, 0, 0);
 
-      doc.setFontSize(12);
-      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 32);
-      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 38);
-      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 44);
+      doc.setFontSize(11);
+      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 42);
+      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 48);
+      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 54);
+      doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 60);
 
-      const tableColumn = ["ID", "Fecha", "Fallo", "Estado"];
-      const tableRows = [];
-
-      historial.forEach(h => {
-        const rowData = [
-          h.id_aviso,
-          new Date(h.fecha_resolucion || h.fecha_creacion || Date.now()).toLocaleDateString(),
-          h.descripcion_problema,
-          h.estado_aviso
-        ];
-        tableRows.push(rowData);
-      });
+      const tableColumn = ["ID", "Fecha", "Tipo Puerta", "Fallo", "Estado"];
+      const tableRows = historial.map(h => ([
+        h.id_aviso,
+        new Date(h.fecha_resolucion || h.fecha_creacion || Date.now()).toLocaleDateString('es-ES'),
+        h.tipo_puerta || '-',
+        h.descripcion_problema,
+        h.estado_aviso
+      ]));
 
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 55,
+        startY: 68,
+        headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [240, 247, 255] },
+        styles: { fontSize: 9, cellPadding: 4 },
       });
+
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFillColor(10, 35, 66);
+        doc.rect(0, 285, 210, 12, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255);
+        doc.text('LUVEMATIC © ' + now.getFullYear() + ' — Documento generado automáticamente', 14, 291);
+        doc.text(`Página ${i} de ${pageCount}`, 180, 291);
+        doc.setTextColor(0, 0, 0);
+      }
 
       doc.save(`Historial_${cliente.nombre_cliente.replace(/\s+/g, '_')}.pdf`);
 
@@ -986,33 +1034,76 @@ function AvisoDetailAdmin({ user }) {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 14, 22);
+    const now = new Date();
+    // Header bar
+    doc.setFillColor(10, 35, 66);
+    doc.rect(0, 0, 210, 32, 'F');
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 4, 40, 24); } catch (e) { }
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 60, 18);
+    doc.setTextColor(0, 0, 0);
 
+    // Client info card
+    doc.setFillColor(240, 247, 255);
+    doc.roundedRect(10, 38, 190, 36, 3, 3, 'F');
     doc.setFontSize(12);
-    doc.text(`Cliente: ${aviso.nombre_cliente}`, 14, 32);
-    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 38);
-    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 14, 44);
-    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 14, 50);
+    doc.setFont(undefined, 'bold');
+    doc.text('Información del Cliente', 14, 46);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    doc.text(`Nombre: ${aviso.nombre_cliente}`, 14, 54);
+    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 60);
+    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 110, 54);
+    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 110, 60);
+    doc.text(`Fecha creación: ${new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')}`, 14, 68);
 
-    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 60);
+    // Status card
+    doc.setFillColor(240, 247, 255);
+    doc.roundedRect(10, 80, 190, 18, 3, 3, 'F');
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('Estado y Asignación', 14, 88);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 94);
     const asignadoNombre = tecnicos.find(t => t.id_usuario === aviso.id_tecnico_asignado)?.nombre_completo || 'Sin asignar';
-    doc.text(`Técnico Asignado: ${asignadoNombre}`, 14, 66);
+    doc.text(`Técnico Asignado: ${asignadoNombre}`, 110, 94);
 
-    doc.setFontSize(14);
-    doc.text("Descripción del Problema:", 14, 80);
+    // Problem description
+    let currentY = 108;
     doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(10, 35, 66);
+    doc.text('Descripción del Problema:', 14, currentY);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
     const splitProblema = doc.splitTextToSize(aviso.descripcion_problema, 180);
-    doc.text(splitProblema, 14, 88);
+    doc.text(splitProblema, 14, currentY + 8);
+    currentY = currentY + 8 + (splitProblema.length * 5) + 8;
 
+    // Observations
     if (aviso.observaciones_cierre) {
-      const currentY = 88 + (splitProblema.length * 7) + 10;
-      doc.setFontSize(14);
-      doc.text("Observaciones de Cierre:", 14, currentY);
       doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(10, 35, 66);
+      doc.text('Observaciones de Cierre:', 14, currentY);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
       const splitCierre = doc.splitTextToSize(aviso.observaciones_cierre, 180);
       doc.text(splitCierre, 14, currentY + 8);
     }
+
+    // Footer
+    doc.setFillColor(10, 35, 66);
+    doc.rect(0, 285, 210, 12, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('LUVEMATIC © ' + now.getFullYear() + ' — Documento generado automáticamente', 14, 291);
+    doc.text('Página 1 de 1', 180, 291);
+    doc.setTextColor(0, 0, 0);
 
     doc.save(`Aviso_${aviso.id_aviso}_${aviso.nombre_cliente.replace(/\s+/g, '_')}.pdf`);
   };
