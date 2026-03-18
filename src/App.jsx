@@ -382,27 +382,13 @@ function AdminAvisos({ user }) {
       new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')
     ]));
 
-    // Build a map of unique dates to alternate colors by day
-    const uniqueDates = [...new Set(tableRows.map(r => r[5]))];
-    const dateColorMap = {};
-    uniqueDates.forEach((d, i) => { dateColorMap[d] = i % 2 === 0; });
-
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 54,
       headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [240, 247, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
-      didParseCell: (data) => {
-        if (data.section === 'body') {
-          const fecha = data.row.raw[5];
-          if (dateColorMap[fecha]) {
-            data.cell.styles.fillColor = [240, 247, 255];
-          } else {
-            data.cell.styles.fillColor = [255, 255, 255];
-          }
-        }
-      },
     });
 
     // Footer
@@ -626,7 +612,7 @@ function AdminClientes({ user }) {
             </thead>
             <tbody>
               {filtered.map((c, idx) => (
-                <tr key={idx} onClick={() => navigate('/admin/avisos', { state: { preSearch: c.nombre_cliente } })} style={{ cursor: 'pointer' }} className="hover-bg">
+                <tr key={idx} onClick={() => navigate('/admin/cliente-avisos', { state: { cliente: c } })} style={{ cursor: 'pointer' }} className="hover-bg">
                   <td>{c.nombre_cliente}</td>
                   <td>{c.direccion_cliente}</td>
                   <td>{c.telefono_cliente}</td>
@@ -635,6 +621,79 @@ function AdminClientes({ user }) {
                 </tr>
               ))}
               {filtered.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center' }}>No se encontraron resultados</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClienteAvisos({ user }) {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const cliente = state?.cliente;
+  const [avisos, setAvisos] = useState([]);
+
+  useEffect(() => {
+    if (!cliente) return;
+    const fetchAvisos = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Avisos')
+          .select('*, Usuarios:id_tecnico_asignado(nombre_completo)')
+          .eq('nombre_cliente', cliente.nombre_cliente)
+          .eq('direccion_cliente', cliente.direccion_cliente)
+          .order('fecha_creacion', { ascending: false });
+        if (error) throw error;
+        setAvisos(data || []);
+      } catch (err) { }
+    };
+    fetchAvisos();
+  }, [cliente]);
+
+  if (!cliente) return <div className="dashboard-layout"><AdminSidebar user={user} /><div className="main-content"><p>No se ha seleccionado ningún cliente. <span className="link" onClick={() => navigate('/admin/clientes')}>Volver al directorio</span></p></div></div>;
+
+  return (
+    <div className="dashboard-layout">
+      <AdminSidebar user={user} />
+      <div className="main-content">
+        <div className="header">
+          <div>
+            <h1>Avisos de {cliente.nombre_cliente}</h1>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>{cliente.direccion_cliente} &mdash; Tel: {cliente.telefono_cliente || 'N/A'}</p>
+          </div>
+          <button className="btn-primary" style={{ width: 'auto' }} onClick={() => navigate('/admin/clientes')}>&larr; Volver a Clientes</button>
+        </div>
+
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Tipo Puerta</th>
+                <th>Descripción</th>
+                <th>Técnico</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {avisos.map(a => (
+                <tr key={a.id_aviso} onClick={() => navigate(`/admin/aviso/${a.id_aviso}`, { state: { aviso: a } })} style={{ cursor: 'pointer' }} className="hover-bg">
+                  <td>#{a.id_aviso}</td>
+                  <td>{new Date(a.fecha_creacion).toLocaleDateString('es-ES')}</td>
+                  <td>{a.tipo_puerta}</td>
+                  <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.descripcion_problema}</td>
+                  <td>{a.Usuarios?.nombre_completo || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Sin asignar</span>}</td>
+                  <td>
+                    <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>
+                      {a.estado_aviso}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {avisos.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center' }}>Este cliente no tiene avisos registrados</td></tr>}
             </tbody>
           </table>
         </div>
@@ -1481,6 +1540,7 @@ function App() {
         <Route path="/admin" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/avisos" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminAvisos user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/clientes" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AdminClientes user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/cliente-avisos" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <ClienteAvisos user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/create-aviso" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <CreateAviso user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/aviso/:id" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <AvisoDetailAdmin user={user} /> : <Navigate to="/" />} />
 
