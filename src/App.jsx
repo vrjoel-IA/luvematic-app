@@ -350,22 +350,22 @@ function AdminAvisos({ user }) {
   const exportMonthlyPDF = () => {
     const doc = new jsPDF();
     // Header - white background with logo and blue text
-    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 8, 55, 18); } catch (e) { }
     doc.setTextColor(10, 35, 66);
     doc.setFontSize(20);
     doc.setFont(undefined, 'bold');
-    doc.text('Reporte Mensual de Avisos', 70, 22);
+    doc.text('Reporte Mensual de Avisos', 75, 20);
     doc.setFont(undefined, 'normal');
     doc.setDrawColor(10, 35, 66);
     doc.setLineWidth(0.8);
-    doc.line(10, 38, 200, 38);
+    doc.line(10, 32, 200, 32);
     doc.setTextColor(0, 0, 0);
 
     const now = new Date();
     const mesNombre = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     doc.setFontSize(11);
-    doc.text(`Período: ${mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)}`, 14, 46);
-    doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 52);
+    doc.text(`Período: ${mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1)}`, 14, 40);
+    doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 46);
 
     const currentMonthAvisos = filtered.filter(a => {
       const date = new Date(a.fecha_creacion);
@@ -382,13 +382,27 @@ function AdminAvisos({ user }) {
       new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')
     ]));
 
+    // Build a map of unique dates to alternate colors by day
+    const uniqueDates = [...new Set(tableRows.map(r => r[5]))];
+    const dateColorMap = {};
+    uniqueDates.forEach((d, i) => { dateColorMap[d] = i % 2 === 0; });
+
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 60,
+      startY: 54,
       headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [240, 247, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
+      didParseCell: (data) => {
+        if (data.section === 'body') {
+          const fecha = data.row.raw[5];
+          if (dateColorMap[fecha]) {
+            data.cell.styles.fillColor = [240, 247, 255];
+          } else {
+            data.cell.styles.fillColor = [255, 255, 255];
+          }
+        }
+      },
     });
 
     // Footer
@@ -530,22 +544,22 @@ function AdminClientes({ user }) {
       const doc = new jsPDF();
       const now = new Date();
       // Header - white background with logo and blue text
-      try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+      try { doc.addImage(LOGO_BASE64, 'PNG', 10, 8, 55, 18); } catch (e) { }
       doc.setTextColor(10, 35, 66);
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
-      doc.text('Historial de Cliente', 70, 22);
+      doc.text('Historial de Cliente', 75, 20);
       doc.setFont(undefined, 'normal');
       doc.setDrawColor(10, 35, 66);
       doc.setLineWidth(0.8);
-      doc.line(10, 38, 200, 38);
+      doc.line(10, 32, 200, 32);
       doc.setTextColor(0, 0, 0);
 
       doc.setFontSize(11);
-      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 46);
-      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 52);
-      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 58);
-      doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 64);
+      doc.text(`Cliente: ${cliente.nombre_cliente}`, 14, 40);
+      doc.text(`Dirección: ${cliente.direccion_cliente}`, 14, 46);
+      doc.text(`Teléfono: ${cliente.telefono_cliente || 'N/A'}`, 14, 52);
+      doc.text(`Fecha de generación: ${now.toLocaleDateString('es-ES')}`, 14, 58);
 
       const tableColumn = ["ID", "Fecha", "Tipo Puerta", "Fallo", "Estado"];
       const tableRows = historial.map(h => ([
@@ -559,7 +573,7 @@ function AdminClientes({ user }) {
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 72,
+        startY: 66,
         headStyles: { fillColor: [10, 35, 66], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [240, 247, 255] },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -1042,67 +1056,73 @@ function AvisoDetailAdmin({ user }) {
     const doc = new jsPDF();
     const now = new Date();
     // Header - white background with logo and blue text
-    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 6, 50, 28); } catch (e) { }
+    try { doc.addImage(LOGO_BASE64, 'PNG', 10, 8, 55, 18); } catch (e) { }
     doc.setTextColor(10, 35, 66);
     doc.setFontSize(20);
     doc.setFont(undefined, 'bold');
-    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 70, 22);
+    doc.text(`Detalle de Aviso #${aviso.id_aviso}`, 75, 20);
     doc.setFont(undefined, 'normal');
     doc.setDrawColor(10, 35, 66);
     doc.setLineWidth(0.8);
-    doc.line(10, 38, 200, 38);
+    doc.line(10, 32, 200, 32);
     doc.setTextColor(0, 0, 0);
 
     // Client info card
     doc.setFillColor(240, 247, 255);
-    doc.roundedRect(10, 44, 190, 36, 3, 3, 'F');
+    doc.roundedRect(10, 38, 190, 36, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('Información del Cliente', 14, 52);
+    doc.text('Información del Cliente', 14, 46);
     doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`Nombre: ${aviso.nombre_cliente}`, 14, 60);
-    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 66);
-    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 110, 60);
-    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 110, 66);
-    doc.text(`Fecha creación: ${new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')}`, 14, 74);
+    doc.text(`Nombre: ${aviso.nombre_cliente}`, 14, 54);
+    doc.text(`Dirección: ${aviso.direccion_cliente}`, 14, 60);
+    doc.text(`Teléfono: ${aviso.telefono_cliente || 'N/A'}`, 110, 54);
+    doc.text(`Tipo de Puerta: ${aviso.tipo_puerta}`, 110, 60);
+    doc.text(`Fecha creación: ${new Date(aviso.fecha_creacion).toLocaleDateString('es-ES')}`, 14, 68);
 
     // Status card
     doc.setFillColor(240, 247, 255);
-    doc.roundedRect(10, 86, 190, 18, 3, 3, 'F');
+    doc.roundedRect(10, 80, 190, 18, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('Estado y Asignación', 14, 94);
+    doc.text('Estado y Asignación', 14, 88);
     doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 100);
+    doc.text(`Estado: ${aviso.estado_aviso}`, 14, 94);
     const asignadoNombre = tecnicos.find(t => t.id_usuario === aviso.id_tecnico_asignado)?.nombre_completo || 'Sin asignar';
-    doc.text(`Técnico Asignado: ${asignadoNombre}`, 110, 100);
+    doc.text(`Técnico Asignado: ${asignadoNombre}`, 110, 94);
 
-    // Problem description
-    let currentY = 114;
+    // Problem description card
+    let currentY = 108;
+    const splitProblema = doc.splitTextToSize(aviso.descripcion_problema, 178);
+    const problemaBoxH = 12 + (splitProblema.length * 5);
+    doc.setFillColor(240, 247, 255);
+    doc.roundedRect(10, currentY - 2, 190, problemaBoxH, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(10, 35, 66);
-    doc.text('Descripción del Problema:', 14, currentY);
+    doc.text('Descripción del Problema:', 14, currentY + 6);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
-    const splitProblema = doc.splitTextToSize(aviso.descripcion_problema, 180);
-    doc.text(splitProblema, 14, currentY + 8);
-    currentY = currentY + 8 + (splitProblema.length * 5) + 8;
+    doc.text(splitProblema, 14, currentY + 14);
+    currentY = currentY + problemaBoxH + 8;
 
-    // Observations
+    // Observations card
     if (aviso.observaciones_cierre) {
+      const splitCierre = doc.splitTextToSize(aviso.observaciones_cierre, 178);
+      const cierreBoxH = 12 + (splitCierre.length * 5);
+      doc.setFillColor(240, 247, 255);
+      doc.roundedRect(10, currentY - 2, 190, cierreBoxH, 3, 3, 'F');
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(10, 35, 66);
-      doc.text('Observaciones de Cierre:', 14, currentY);
+      doc.text('Observaciones de Cierre:', 14, currentY + 6);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
-      const splitCierre = doc.splitTextToSize(aviso.observaciones_cierre, 180);
-      doc.text(splitCierre, 14, currentY + 8);
+      doc.text(splitCierre, 14, currentY + 14);
     }
 
     // Footer
