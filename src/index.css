@@ -131,6 +131,15 @@ h6 {
   color: #155724;
 }
 
+.module-card {
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.module-card:hover {
+  transform: translateY(-5px);
+}
+
 /* ========================================
    Dashboard Layout
    ======================================== */

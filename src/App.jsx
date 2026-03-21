@@ -81,10 +81,8 @@ function Login({ setAuth }) {
         localStorage.setItem('luvematic_user', JSON.stringify(userPayload));
         setAuth(userPayload);
 
-        if (userData.rol === 'Administrador' || userData.rol === 'Direccion') {
-          navigate('/admin');
-        } else if (userData.rol === 'Tecnico') {
-          navigate('/tecnico');
+        if (userData.rol === 'Administrador' || userData.rol === 'Direccion' || userData.rol === 'Tecnico') {
+          navigate('/select-module');
         } else {
           setError("Tu cuenta aún no tiene permisos asignados. Contacta al administrador.");
         }
@@ -1499,6 +1497,138 @@ function TechAvisoDetail() {
   )
 }
 
+// ====== NUEVO MÓDULO MANTENIMIENTOS ======
+
+function ModuleSelection({ user }) {
+  const navigate = useNavigate();
+
+  const handleAvisos = () => {
+    if (user.rol === 'Administrador' || user.rol === 'Direccion') navigate('/admin');
+    else if (user.rol === 'Tecnico') navigate('/tecnico');
+  };
+
+  const handleMantenimientos = () => {
+    if (user.rol === 'Administrador' || user.rol === 'Direccion') navigate('/admin/mantenimientos');
+    else if (user.rol === 'Tecnico') navigate('/tecnico/mantenimientos');
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="login-card" style={{ maxWidth: '800px', width: '90%', padding: '3rem 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <img src="/logo.png" alt="LUVEMATIC" className="logo" style={{ height: '60px', marginBottom: '1rem' }} />
+          <h2 style={{ color: 'var(--text-muted)' }}>Selecciona un Módulo</h2>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+          <div 
+            onClick={handleAvisos}
+            className="module-card"
+            style={{ 
+              background: '#0A2342', color: 'white', padding: '3rem', borderRadius: '12px', 
+              textAlign: 'center', boxShadow: '0 10px 15px rgba(0,0,0,0.1)'
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'white' }}>AVISOS</h2>
+            <p style={{ marginTop: '1rem', opacity: 0.8 }}>Gestión de averías e incidencias</p>
+          </div>
+
+          <div 
+            onClick={handleMantenimientos}
+            className="module-card"
+            style={{ 
+              background: 'var(--accent-green)', color: 'white', padding: '3rem', borderRadius: '12px', 
+              textAlign: 'center', boxShadow: '0 10px 15px rgba(0,0,0,0.1)'
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'white' }}>MANTENIMIENTOS</h2>
+            <p style={{ marginTop: '1rem', opacity: 0.8 }}>Revisiones y preventivos</p>
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '3rem', textAlign: 'center' }}>
+          <button 
+            onClick={() => { localStorage.clear(); window.location.href = '/'; }} 
+            className="btn-danger" 
+            style={{ width: 'auto' }}
+          >
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MantenimientosSidebar({ user }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path ? { fontWeight: 'bold', color: 'white' } : { opacity: 0.8, color: 'white' };
+
+  return (
+    <div className="sidebar" style={{ background: 'var(--accent-green)' }}>
+      <div className="sidebar-top">
+        <div style={{ background: 'white', padding: '6px 10px', borderRadius: '4px' }}>
+          <img src="/logo.png" style={{ height: '30px', display: 'block' }} alt="LUVEMATIC" />
+        </div>
+        <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {isMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+
+      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+        <p className="link" onClick={() => navigate('/admin/mantenimientos')} style={isActive('/admin/mantenimientos')}>Inicio Mantenimientos</p>
+        <p className="link" onClick={() => navigate('/select-module')} style={{ opacity: 0.8, color: 'white', marginTop: '2rem' }}>← Cambiar Módulo</p>
+
+        <div className="sidebar-footer">
+          <p>{user?.nombre}</p>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger">Cerrar Sesión</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MantenimientosDashboardAdmin({ user }) {
+  const navigate = useNavigate();
+  return (
+    <div className="dashboard-layout">
+      <MantenimientosSidebar user={user} />
+      <div className="main-content">
+        <div className="header">
+          <h1 style={{ color: 'var(--accent-green)' }}>Mantenimientos</h1>
+        </div>
+        <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '4rem' }}>
+          <h2 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h2>
+          <p style={{ marginTop: '1rem' }}>Próximamente: Gestión de mantenimientos preventivos.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MantenimientosDashboardTech({ user }) {
+  const navigate = useNavigate();
+  return (
+    <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
+        <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto' }}>← Tus Módulos</button>
+      </div>
+      <h2 style={{ color: 'var(--accent-green)', textAlign: 'center' }}>Tus Mantenimientos</h2>
+      <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
+        <h3 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h3>
+        <p style={{ marginTop: '1rem' }}>Próximamente: Lista de revisiones asignadas.</p>
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger" style={{ width: 'auto' }}>Cerrar Sesión</button>
+      </div>
+    </div>
+  );
+}
+
+// =========================================
 function PendingApproval({ setAuth }) {
   return (
     <div className="auth-container">
@@ -1528,11 +1658,12 @@ function App() {
       <Routes>
         <Route path="/" element={
           user ? (
-            (user.rol === 'Administrador' || user.rol === 'Direccion') ? <Navigate to="/admin" /> :
-              user.rol === 'Tecnico' ? <Navigate to="/tecnico" /> :
+            (user.rol === 'Administrador' || user.rol === 'Direccion' || user.rol === 'Tecnico') ? <Navigate to="/select-module" /> :
                 <Navigate to="/espera" />
           ) : <Login setAuth={setUser} />
         } />
+
+        <Route path="/select-module" element={user ? <ModuleSelection user={user} /> : <Navigate to="/" />} />
 
         <Route path="/espera" element={user && user.rol === 'Usuario' ? <PendingApproval setAuth={setUser} /> : <Navigate to="/" />} />
 
@@ -1551,6 +1682,10 @@ function App() {
         {/* Tech Routes */}
         <Route path="/tecnico" element={user?.rol === 'Tecnico' ? <TechDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/tecnico/aviso/:id" element={user?.rol === 'Tecnico' ? <TechAvisoDetail /> : <Navigate to="/" />} />
+
+        {/* Mantenimientos Routes */}
+        <Route path="/admin/mantenimientos" element={(user?.rol === 'Administrador' || user?.rol === 'Direccion') ? <MantenimientosDashboardAdmin user={user} /> : <Navigate to="/" />} />
+        <Route path="/tecnico/mantenimientos" element={user?.rol === 'Tecnico' ? <MantenimientosDashboardTech user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
