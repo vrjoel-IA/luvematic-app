@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from './supabase';
 import { LOGO_BASE64 } from './logo';
+import { ClipboardList, ArrowLeft, Wrench } from 'lucide-react';
 import './index.css';
 
 import api from './api';
@@ -99,7 +100,7 @@ function Login({ setAuth }) {
       <div className="login-card">
         <img src="/logo.png" alt="LUVEMATIC" className="logo" />
         <h2 style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
-          {isRegistering ? 'Crear Cuenta Nueva' : 'Gestión de Avisos'}
+          {isRegistering ? 'Crear Cuenta Nueva' : 'Gestión Técnica'}
         </h2>
 
         {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
@@ -199,7 +200,13 @@ function AdminSidebar({ user }) {
           </>
         )}
 
-        <div className="sidebar-footer">
+        <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', paddingBottom: '1rem' }}>
+          <p className="link" onClick={() => handleNav('/select-module')} style={{ opacity: 0.9, color: 'white', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <ArrowLeft size={16} /> Cambiar Módulo
+          </p>
+        </div>
+
+        <div className="sidebar-footer" style={{ marginTop: 0, paddingTop: '1rem' }}>
           <p>{user?.nombre}</p>
           <button onClick={handleLogout} className="btn-danger">Cerrar Sesión</button>
         </div>
@@ -1356,7 +1363,12 @@ function TechDashboard({ user }) {
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
-        <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger">Salir</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}>
+            <ArrowLeft size={16} /> Módulos
+          </button>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger" style={{ width: 'auto' }}>Salir</button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
@@ -1521,28 +1533,20 @@ function ModuleSelection({ user }) {
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-          <div 
-            onClick={handleAvisos}
-            className="module-card"
-            style={{ 
-              background: '#0A2342', color: 'white', padding: '3rem', borderRadius: '12px', 
-              textAlign: 'center', boxShadow: '0 10px 15px rgba(0,0,0,0.1)'
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'white' }}>AVISOS</h2>
-            <p style={{ marginTop: '1rem', opacity: 0.8 }}>Gestión de averías e incidencias</p>
+          <div onClick={handleAvisos} className="module-card">
+            <div className="icon-container">
+              <Wrench size={48} />
+            </div>
+            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'inherit' }}>AVISOS</h2>
+            <p style={{ marginTop: '1rem', opacity: 0.8, color: 'var(--text-muted)' }}>Gestión de averías e incidencias</p>
           </div>
 
-          <div 
-            onClick={handleMantenimientos}
-            className="module-card"
-            style={{ 
-              background: 'var(--accent-green)', color: 'white', padding: '3rem', borderRadius: '12px', 
-              textAlign: 'center', boxShadow: '0 10px 15px rgba(0,0,0,0.1)'
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'white' }}>MANTENIMIENTOS</h2>
-            <p style={{ marginTop: '1rem', opacity: 0.8 }}>Revisiones y preventivos</p>
+          <div onClick={handleMantenimientos} className="module-card">
+            <div className="icon-container">
+              <ClipboardList size={48} />
+            </div>
+            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'inherit' }}>MANTENIMIENTOS</h2>
+            <p style={{ marginTop: '1rem', opacity: 0.8, color: 'var(--text-muted)' }}>Revisiones y preventivos</p>
           </div>
         </div>
         
@@ -1567,7 +1571,7 @@ function MantenimientosSidebar({ user }) {
   const isActive = (path) => location.pathname === path ? { fontWeight: 'bold', color: 'white' } : { opacity: 0.8, color: 'white' };
 
   return (
-    <div className="sidebar" style={{ background: 'var(--accent-green)' }}>
+    <div className="sidebar" style={{ background: 'var(--primary-color)' }}>
       <div className="sidebar-top">
         <div style={{ background: 'white', padding: '6px 10px', borderRadius: '4px' }}>
           <img src="/logo.png" style={{ height: '30px', display: 'block' }} alt="LUVEMATIC" />
@@ -1579,9 +1583,14 @@ function MantenimientosSidebar({ user }) {
 
       <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
         <p className="link" onClick={() => navigate('/admin/mantenimientos')} style={isActive('/admin/mantenimientos')}>Inicio Mantenimientos</p>
-        <p className="link" onClick={() => navigate('/select-module')} style={{ opacity: 0.8, color: 'white', marginTop: '2rem' }}>← Cambiar Módulo</p>
+        
+        <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', paddingBottom: '1rem' }}>
+          <p className="link" onClick={() => navigate('/select-module')} style={{ opacity: 0.9, color: 'white', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <ArrowLeft size={16} /> Cambiar Módulo
+          </p>
+        </div>
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ marginTop: 0, paddingTop: '1rem' }}>
           <p>{user?.nombre}</p>
           <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger">Cerrar Sesión</button>
         </div>
@@ -1597,7 +1606,7 @@ function MantenimientosDashboardAdmin({ user }) {
       <MantenimientosSidebar user={user} />
       <div className="main-content">
         <div className="header">
-          <h1 style={{ color: 'var(--accent-green)' }}>Mantenimientos</h1>
+          <h1 style={{ color: 'var(--primary-color)' }}>Mantenimientos</h1>
         </div>
         <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '4rem' }}>
           <h2 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h2>
@@ -1614,9 +1623,11 @@ function MantenimientosDashboardTech({ user }) {
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
-        <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto' }}>← Tus Módulos</button>
+        <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}>
+          <ArrowLeft size={16} /> Módulos
+        </button>
       </div>
-      <h2 style={{ color: 'var(--accent-green)', textAlign: 'center' }}>Tus Mantenimientos</h2>
+      <h2 style={{ color: 'var(--primary-color)', textAlign: 'center' }}>Tus Mantenimientos</h2>
       <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
         <h3 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h3>
         <p style={{ marginTop: '1rem' }}>Próximamente: Lista de revisiones asignadas.</p>
