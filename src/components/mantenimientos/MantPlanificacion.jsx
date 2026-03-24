@@ -1,6 +1,6 @@
 // Mantenimientos — Planificación: Calendario + Asignación de Técnicos
 import { useState, useEffect } from 'react';
-import { Calendar, User, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, User, MapPin, ChevronLeft, ChevronRight, Layers, Plus, X } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { MantSidebar } from './MantViews';
 
@@ -15,9 +15,15 @@ export function MantPlanificacion({ user }) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedDay, setSelectedDay] = useState(null);
-  const [vista, setVista] = useState('calendario'); // calendario | asignacion
+  const [vista, setVista] = useState('calendario'); // calendario | asignacion | grupos
   const [filtroTecnico, setFiltroTecnico] = useState('todos');
   const [filtroGrupo, setFiltroGrupo] = useState('todos');
+  // Grupos inline state
+  const [showGrupoForm, setShowGrupoForm] = useState(false);
+  const [editingGrupoId, setEditingGrupoId] = useState(null);
+  const [grupoForm, setGrupoForm] = useState({ nombre: '', descripcion: '' });
+  const [grupoLoading, setGrupoLoading] = useState(false);
+  const [mantCounts, setMantCounts] = useState({});
 
   useEffect(() => {
     fetchAll();
@@ -32,6 +38,36 @@ export function MantPlanificacion({ user }) {
     setMantenimientos(mRes.data || []);
     setTecnicos(tRes.data || []);
     setGrupos(gRes.data || []);
+    // Count mantenimientos per group
+    const counts = {};
+    (mRes.data || []).forEach(m => { if (m.id_grupo) counts[m.id_grupo] = (counts[m.id_grupo] || 0) + 1; });
+    setMantCounts(counts);
+  };
+
+  // Grupos CRUD
+  const resetGrupoForm = () => { setGrupoForm({ nombre: '', descripcion: '' }); setEditingGrupoId(null); setShowGrupoForm(false); };
+  const handleEditGrupo = (g) => { setGrupoForm({ nombre: g.nombre, descripcion: g.descripcion || '' }); setEditingGrupoId(g.id); setShowGrupoForm(true); };
+  const handleSubmitGrupo = async (e) => {
+    e.preventDefault(); setGrupoLoading(true);
+    try {
+      if (editingGrupoId) { await supabase.from('Grupos_Mantenimiento').update(grupoForm).eq('id', editingGrupoId); }
+      else { const maxOrden = grupos.reduce((max, g) => Math.max(max, g.orden || 0), 0); await supabase.from('Grupos_Mantenimiento').insert([{ ...grupoForm, orden: maxOrden + 1 }]); }
+      resetGrupoForm(); await fetchAll();
+    } catch (err) { alert('Error: ' + err.message); }
+    setGrupoLoading(false);
+  };
+  const handleDeleteGrupo = async (id) => {
+    if (!confirm('¿Eliminar este grupo? Los mantenimientos se desvinculan.')) return;
+    await supabase.from('Mantenimientos').update({ id_grupo: null }).eq('id_grupo', id);
+    await supabase.from('Grupos_Mantenimiento').delete().eq('id', id);
+    await fetchAll();
+  };
+  const moveGroup = async (index, direction) => {
+    const newG = [...grupos]; const ti = index + direction;
+    if (ti < 0 || ti >= newG.length) return;
+    [newG[index], newG[ti]] = [newG[ti], newG[index]];
+    await Promise.all([supabase.from('Grupos_Mantenimiento').update({ orden: index }).eq('id', newG[index].id), supabase.from('Grupos_Mantenimiento').update({ orden: ti }).eq('id', newG[ti].id)]);
+    await fetchAll();
   };
 
   const assignTecnico = async (mantId, tecnicoId) => {
@@ -83,7 +119,7 @@ export function MantPlanificacion({ user }) {
       <div className="main-content">
         <div className="header">
           <h1>Planificación</h1>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button onClick={() => setVista('calendario')} className="btn-primary"
               style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.9rem', backgroundColor: vista === 'calendario' ? '#0A2342' : '#6c757d' }}>
               <Calendar size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Calendario
@@ -91,6 +127,10 @@ export function MantPlanificacion({ user }) {
             <button onClick={() => setVista('asignacion')} className="btn-primary"
               style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.9rem', backgroundColor: vista === 'asignacion' ? '#0A2342' : '#6c757d' }}>
               <User size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Asignación
+            </button>
+            <button onClick={() => setVista('grupos')} className="btn-primary"
+              style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.9rem', backgroundColor: vista === 'grupos' ? '#0A2342' : '#6c757d' }}>
+              <Layers size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Grupos
             </button>
           </div>
         </div>
@@ -193,7 +233,7 @@ export function MantPlanificacion({ user }) {
               ))}
             </div>
           </>
-        ) : (
+        ) : vista === 'asignacion' ? (
           /* Assignment View */
           <>
             {/* Filters */}
@@ -264,6 +304,69 @@ export function MantPlanificacion({ user }) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Grupos View */
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Agrupa mantenimientos por zonas para organizar rutas.</p>
+              <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { resetGrupoForm(); setShowGrupoForm(true); }}>
+                <Plus size={18} /> Nuevo Grupo
+              </button>
+            </div>
+
+            {showGrupoForm && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                <div className="card" style={{ width: '90%', maxWidth: '450px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h2 style={{ margin: 0 }}>{editingGrupoId ? 'Editar Grupo' : 'Nuevo Grupo'}</h2>
+                    <button onClick={resetGrupoForm} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+                  </div>
+                  <form onSubmit={handleSubmitGrupo}>
+                    <div className="input-group"><label>Nombre *</label><input type="text" value={grupoForm.nombre} onChange={e => setGrupoForm({ ...grupoForm, nombre: e.target.value })} required placeholder="Ej: Zona Norte" /></div>
+                    <div className="input-group"><label>Descripción</label><textarea rows="2" value={grupoForm.descripcion} onChange={e => setGrupoForm({ ...grupoForm, descripcion: e.target.value })} placeholder="Descripción opcional"></textarea></div>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                      <button type="button" onClick={resetGrupoForm} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
+                      <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={grupoLoading}>{grupoLoading ? 'Guardando...' : (editingGrupoId ? 'Guardar' : 'Crear')}</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {grupos.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                <Layers size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                <p>No hay grupos. Crea zonas para organizar los mantenimientos.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '0.8rem' }}>
+                {(() => { const ZONE_COLORS = ['#0A2342','#2196F3','#FF9800','#9C27B0','#E91E63','#28a745','#00BCD4','#795548']; return grupos.map((g, idx) => (
+                  <div key={g.id} className="card" style={{ padding: '1rem 1.2rem', borderLeft: `5px solid ${ZONE_COLORS[idx % ZONE_COLORS.length]}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'box-shadow 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = ''}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <button onClick={() => moveGroup(idx, -1)} disabled={idx === 0} style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 1, padding: 0, fontSize: '0.7rem' }}>▲</button>
+                        <button onClick={() => moveGroup(idx, 1)} disabled={idx === grupos.length - 1} style={{ background: 'none', border: 'none', cursor: idx === grupos.length - 1 ? 'default' : 'pointer', opacity: idx === grupos.length - 1 ? 0.3 : 1, padding: 0, fontSize: '0.7rem' }}>▼</button>
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Layers size={18} color={ZONE_COLORS[idx % ZONE_COLORS.length]} />
+                          <strong style={{ fontSize: '1.05rem' }}>{g.nombre}</strong>
+                          <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: '#f0f4f8', color: '#0A2342', fontWeight: 600 }}>{mantCounts[g.id] || 0} mant.</span>
+                        </div>
+                        {g.descripcion && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 26px' }}>{g.descripcion}</p>}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleEditGrupo(g)} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}>Editar</button>
+                      <button onClick={() => handleDeleteGrupo(g.id)} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem', backgroundColor: '#dc3545' }}>Eliminar</button>
+                    </div>
+                  </div>
+                )); })()}
               </div>
             )}
           </>

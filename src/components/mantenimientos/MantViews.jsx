@@ -28,8 +28,6 @@ export function MantSidebar({ user }) {
         <p className="link" onClick={() => handleNav('/admin/mantenimientos')} style={isActive('/admin/mantenimientos')}>Dashboard</p>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos/listado')} style={isActive('/admin/mantenimientos/listado')}>Mantenimientos</p>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos/clientes')} style={isActive('/admin/mantenimientos/clientes')}>Clientes</p>
-        <p className="link" onClick={() => handleNav('/admin/mantenimientos/planificacion')} style={isActive('/admin/mantenimientos/planificacion')}>Planificación</p>
-        <p className="link" onClick={() => handleNav('/admin/mantenimientos/grupos')} style={isActive('/admin/mantenimientos/grupos')}>Grupos / Zonas</p>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos/incidencias')} style={isActive('/admin/mantenimientos/incidencias')}>Incidencias</p>
         {user?.rol === 'Direccion' && (
           <p className="link" onClick={() => handleNav('/admin/mantenimientos/rendimiento')} style={isActive('/admin/mantenimientos/rendimiento')}>Rendimiento</p>
