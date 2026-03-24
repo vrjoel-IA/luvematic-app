@@ -30,6 +30,26 @@ export function MantListado({ user }) {
   const [filtroTecnico, setFiltroTecnico] = useState('todos');
   const [filtroGrupoAsig, setFiltroGrupoAsig] = useState('todos');
 
+  // Swipe support
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchEndHandler = (prevAction, nextAction) => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe && nextAction) nextAction(); // Swiped left -> Next Month
+    if (isRightSwipe && prevAction) prevAction(); // Swiped right -> Prev Month
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
   // Grupos CRUD
   const [showGrupoForm, setShowGrupoForm] = useState(false);
   const [editingGrupoId, setEditingGrupoId] = useState(null);
@@ -205,7 +225,13 @@ export function MantListado({ user }) {
               </div>
             </div>
 
-            {Object.keys(listGrouped).length === 0 ? (
+            <div
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={() => onTouchEndHandler(listPrevMonth, listNextMonth)}
+              style={{ touchAction: 'pan-y' }}
+            >
+              {Object.keys(listGrouped).length === 0 ? (
               <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                 <Calendar size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
                 <p>No hay mantenimientos para estos filtros.</p>
@@ -249,13 +275,20 @@ export function MantListado({ user }) {
                 );
               })
             )}
+            </div>
           </>
         )}
 
         {/* ========== CALENDARIO ========== */}
         {tab === 'calendario' && (
           <>
-            <div className="card" style={{ padding: '1.5rem' }}>
+            <div 
+              className="card" 
+              style={{ padding: '1.5rem', touchAction: 'pan-y' }}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={() => onTouchEndHandler(calPrev, calNext)}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={calPrev} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronLeft size={18} /></button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
