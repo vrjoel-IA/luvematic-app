@@ -8,7 +8,7 @@ const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C
 const ESTADO_COLORS = { programado: '#0A2342', asignado: '#FF9800', en_curso: '#2196F3', completado: '#28a745', cancelado: '#dc3545' };
 const ESTADO_LABELS = { programado: 'Programado', asignado: 'Asignado', en_curso: 'En Curso', completado: 'Completado', cancelado: 'Cancelado' };
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DIAS_SEMANA = ['Lun','Mar','Mié','Jue','Vier','Sáb','Dom'];
+const DIAS_SEMANA = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
 export function MantListado({ user }) {
   const now = new Date();
@@ -20,12 +20,10 @@ export function MantListado({ user }) {
   // Listado filters
   const [filtroFreq, setFiltroFreq] = useState('todos');
   const [filtroEstado, setFiltroEstado] = useState('todos');
-  const [filtroMes, setFiltroMes] = useState(now.getMonth());
-  const [filtroYear, setFiltroYear] = useState(now.getFullYear());
+  const [listPeriod, setListPeriod] = useState({ month: now.getMonth(), year: now.getFullYear() });
 
   // Calendario
-  const [calMonth, setCalMonth] = useState(now.getMonth());
-  const [calYear, setCalYear] = useState(now.getFullYear());
+  const [calPeriod, setCalPeriod] = useState({ month: now.getMonth(), year: now.getFullYear() });
   const [selectedDay, setSelectedDay] = useState(null);
 
   // Asignación filters
@@ -100,19 +98,17 @@ export function MantListado({ user }) {
   const todayStr = now.toISOString().split('T')[0];
 
   const calPrev = () => {
-    if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1); }
-    else { setCalMonth(calMonth - 1); }
+    setCalPeriod(prev => prev.month === 0 ? { month: 11, year: prev.year - 1 } : { month: prev.month - 1, year: prev.year });
     setSelectedDay(null);
   };
   const calNext = () => {
-    if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1); }
-    else { setCalMonth(calMonth + 1); }
+    setCalPeriod(prev => prev.month === 11 ? { month: 0, year: prev.year + 1 } : { month: prev.month + 1, year: prev.year });
     setSelectedDay(null);
   };
-  const calToday = () => { setCalMonth(now.getMonth()); setCalYear(now.getFullYear()); setSelectedDay(now.getDate()); };
+  const calToday = () => { setCalPeriod({ month: now.getMonth(), year: now.getFullYear() }); setSelectedDay(now.getDate()); };
 
-  const daysInMonth = getDaysInMonth(calMonth, calYear);
-  const firstDay = getFirstDayOfMonth(calMonth, calYear);
+  const daysInMonth = getDaysInMonth(calPeriod.month, calPeriod.year);
+  const firstDay = getFirstDayOfMonth(calPeriod.month, calPeriod.year);
 
   // Data derivations
   const mantByDate = {};
@@ -123,7 +119,7 @@ export function MantListado({ user }) {
     const date = new Date(m.fecha_programada);
     return (filtroFreq === 'todos' || m.frecuencia === filtroFreq) &&
            (filtroEstado === 'todos' || m.estado === filtroEstado) &&
-           date.getMonth() === filtroMes && date.getFullYear() === filtroYear;
+           date.getMonth() === listPeriod.month && date.getFullYear() === listPeriod.year;
   });
   const listGrouped = {};
   listFiltered.forEach(m => { const d = m.fecha_programada; if (!listGrouped[d]) listGrouped[d] = []; listGrouped[d].push(m); });
@@ -135,7 +131,7 @@ export function MantListado({ user }) {
   };
 
   // Selected calendar day
-  const selectedDayStr = selectedDay ? `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : null;
+  const selectedDayStr = selectedDay ? `${calPeriod.year}-${String(calPeriod.month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : null;
   const selectedItems = selectedDayStr ? (mantByDate[selectedDayStr] || []) : [];
 
   // Assignment filtered
@@ -145,9 +141,9 @@ export function MantListado({ user }) {
     return mt && mg && m.estado !== 'completado' && m.estado !== 'cancelado';
   }).sort((a, b) => a.fecha_programada.localeCompare(b.fecha_programada));
 
-  const listPrevMonth = () => { if (filtroMes === 0) { setFiltroMes(11); setFiltroYear(filtroYear - 1); } else setFiltroMes(filtroMes - 1); };
-  const listNextMonth = () => { if (filtroMes === 11) { setFiltroMes(0); setFiltroYear(filtroYear + 1); } else setFiltroMes(filtroMes + 1); };
-  const listToday = () => { setFiltroMes(now.getMonth()); setFiltroYear(now.getFullYear()); };
+  const listPrevMonth = () => { setListPeriod(prev => prev.month === 0 ? { month: 11, year: prev.year - 1 } : { month: prev.month - 1, year: prev.year }); };
+  const listNextMonth = () => { setListPeriod(prev => prev.month === 11 ? { month: 0, year: prev.year + 1 } : { month: prev.month + 1, year: prev.year }); };
+  const listToday = () => { setListPeriod({ month: now.getMonth(), year: now.getFullYear() }); };
 
   const ZONE_COLORS = ['#0A2342','#2196F3','#FF9800','#9C27B0','#E91E63','#28a745','#00BCD4','#795548'];
 
@@ -190,7 +186,7 @@ export function MantListado({ user }) {
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button onClick={listPrevMonth} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}>◀</button>
-                  <span style={{ minWidth: '140px', textAlign: 'center', fontWeight: 600 }}>{MESES[filtroMes]} {filtroYear}</span>
+                  <span style={{ minWidth: '140px', textAlign: 'center', fontWeight: 600 }}>{MESES[listPeriod.month]} {listPeriod.year}</span>
                   <button onClick={listNextMonth} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}>▶</button>
                   <button onClick={listToday} style={{ padding: '4px 10px', borderRadius: '14px', border: '2px solid #0A2342', backgroundColor: 'white', color: '#0A2342', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>Hoy</button>
                 </div>
@@ -263,7 +259,7 @@ export function MantListado({ user }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={calPrev} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronLeft size={18} /></button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <h2 style={{ margin: 0 }}>{MESES[calMonth]} {calYear}</h2>
+                  <h2 style={{ margin: 0 }}>{MESES[calPeriod.month]} {calPeriod.year}</h2>
                   <button onClick={calToday} style={{ padding: '4px 12px', borderRadius: '16px', border: '2px solid #0A2342', backgroundColor: 'white', color: '#0A2342', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>Hoy</button>
                 </div>
                 <button onClick={calNext} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronRight size={18} /></button>
@@ -276,7 +272,7 @@ export function MantListado({ user }) {
                 {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
-                  const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const dateStr = `${calPeriod.year}-${String(calPeriod.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const items = mantByDate[dateStr] || [];
                   const isToday = dateStr === todayStr;
                   const isSelected = day === selectedDay;
@@ -302,7 +298,7 @@ export function MantListado({ user }) {
 
             {selectedDay && (
               <div style={{ marginTop: '1.5rem' }}>
-                <h3 style={{ marginBottom: '0.8rem' }}>📅 {selectedDay} de {MESES[calMonth]} {calYear} — {selectedItems.length} mantenimiento(s)</h3>
+                <h3 style={{ marginBottom: '0.8rem' }}>📅 {selectedDay} de {MESES[calPeriod.month]} {calPeriod.year} — {selectedItems.length} mantenimiento(s)</h3>
                 {selectedItems.length === 0 ? (
                   <div className="card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No hay mantenimientos este día.</div>
                 ) : (
