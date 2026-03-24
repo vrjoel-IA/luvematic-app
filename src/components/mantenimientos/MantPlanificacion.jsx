@@ -102,7 +102,13 @@ export function MantPlanificacion({ user }) {
               {/* Month navigation */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={prevMonth} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronLeft size={18} /></button>
-                <h2 style={{ margin: 0 }}>{mesesNombres[currentMonth]} {currentYear}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <h2 style={{ margin: 0 }}>{mesesNombres[currentMonth]} {currentYear}</h2>
+                  <button onClick={() => { const now = new Date(); setCurrentMonth(now.getMonth()); setCurrentYear(now.getFullYear()); setSelectedDay(now.getDate()); }}
+                    style={{ padding: '4px 12px', borderRadius: '16px', border: '2px solid #0A2342', backgroundColor: 'white', color: '#0A2342', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
+                    Hoy
+                  </button>
+                </div>
                 <button onClick={nextMonth} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronRight size={18} /></button>
               </div>
 

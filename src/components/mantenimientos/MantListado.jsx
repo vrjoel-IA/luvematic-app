@@ -79,6 +79,10 @@ export function MantListado({ user }) {
               <span style={{ minWidth: '140px', textAlign: 'center', fontWeight: 600 }}>{mesesNombres[filtroMes]} {filtroYear}</span>
               <button onClick={() => { if (filtroMes === 11) { setFiltroMes(0); setFiltroYear(y => y + 1); } else setFiltroMes(m => m + 1); }}
                 style={{ background: 'none', border: '1px solid #ddd', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}>▶</button>
+              <button onClick={() => { const now = new Date(); setFiltroMes(now.getMonth()); setFiltroYear(now.getFullYear()); }}
+                style={{ padding: '4px 10px', borderRadius: '14px', border: '2px solid #0A2342', backgroundColor: 'white', color: '#0A2342', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+                Hoy
+              </button>
             </div>
 
             {/* Freq filter */}
