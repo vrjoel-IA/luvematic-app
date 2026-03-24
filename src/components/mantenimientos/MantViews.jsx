@@ -1,7 +1,8 @@
-// Mantenimientos — Placeholder components
-import { useState } from 'react';
+// Mantenimientos — Sidebar + Dashboard components
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
+import { supabase } from '../../supabase';
 
 export function MantSidebar({ user }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,22 +66,88 @@ export function MantDashboardAdmin({ user }) {
 
 export function MantDashboardTech({ user }) {
   const navigate = useNavigate();
+  const [mantenimientos, setMantenimientos] = useState([]);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63' };
+  const ESTADO_COLORS = { programado: '#0A2342', asignado: '#FF9800', en_curso: '#2196F3', completado: '#28a745' };
+  const ESTADO_LABELS = { programado: 'Programado', asignado: 'Asignado', en_curso: 'En Curso', completado: 'Completado' };
+
+  useEffect(() => {
+    supabase.from('Mantenimientos').select('*, Instalaciones(direccion, Clientes_Mant(razon_social))')
+      .eq('id_tecnico', user.id).in('estado', ['asignado', 'en_curso', 'programado'])
+      .order('fecha_programada').then(({ data }) => setMantenimientos(data || []));
+  }, []);
+
+  const hoy = mantenimientos.filter(m => m.fecha_programada === todayStr);
+  const proximos = mantenimientos.filter(m => m.fecha_programada > todayStr).slice(0, 10);
+
   return (
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
-        <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}>
-          <ArrowLeft size={16} /> Módulos
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}>
+            <ArrowLeft size={16} /> Módulos
+          </button>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger" style={{ width: 'auto' }}>Salir</button>
+        </div>
       </div>
-      <h2 style={{ color: 'var(--primary-color)', textAlign: 'center' }}>Tus Mantenimientos</h2>
-      <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
-        <h3 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h3>
-        <p style={{ marginTop: '1rem' }}>Próximamente: Tu jornada de hoy y lista de revisiones.</p>
+
+      {/* Today section */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+        <Calendar size={20} color="#0A2342" />
+        <h2 style={{ margin: 0, color: '#0A2342' }}>Hoy — {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
       </div>
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger" style={{ width: 'auto' }}>Cerrar Sesión</button>
-      </div>
+
+      {hoy.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+          <p>No tienes mantenimientos asignados para hoy.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          {hoy.map(m => (
+            <div key={m.id} className="card" style={{ padding: '1rem', borderLeft: `4px solid ${FREQ_COLORS[m.frecuencia]}`, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia], textTransform: 'uppercase' }}>{m.frecuencia}</span>
+                    <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 600, color: 'white', backgroundColor: ESTADO_COLORS[m.estado] }}>{ESTADO_LABELS[m.estado]}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem' }}>
+                    <MapPin size={14} /> <strong>{m.Instalaciones?.direccion}</strong>
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{m.Instalaciones?.Clientes_Mant?.razon_social}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upcoming */}
+      {proximos.length > 0 && (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem', marginTop: '1rem' }}>
+            <Clock size={18} color="var(--text-muted)" />
+            <h3 style={{ margin: 0, color: 'var(--text-muted)' }}>Próximos</h3>
+          </div>
+          <div style={{ display: 'grid', gap: '0.4rem' }}>
+            {proximos.map(m => (
+              <div key={m.id} className="card" style={{ padding: '0.7rem 1rem', opacity: 0.85 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia] }}>{m.frecuencia}</span>
+                    <span style={{ fontSize: '0.85rem' }}>{m.Instalaciones?.direccion}</span>
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: '#0A2342', fontWeight: 600 }}>{new Date(m.fecha_programada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
