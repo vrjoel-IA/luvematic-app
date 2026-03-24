@@ -1,7 +1,7 @@
 // Mantenimientos — Cliente Detail with Instalaciones CRUD
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, MapPin, ChevronRight, X, ArrowLeft, DoorOpen } from 'lucide-react';
+import { Plus, MapPin, ChevronRight, X, ArrowLeft, DoorOpen, FileText } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { MantSidebar } from './MantViews';
 
@@ -69,9 +69,14 @@ export function MantClienteDetalle({ user }) {
                 {cliente.cif && `CIF: ${cliente.cif} · `}{cliente.contacto_nombre && `${cliente.contacto_nombre} · `}{cliente.contacto_telefono}
               </p>
             </div>
-            <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { resetForm(); setShowForm(true); }}>
-              <Plus size={18} /> Nueva Instalación
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#FF9800' }} onClick={() => navigate(`/admin/mantenimientos/contratos/${id}`)}>
+                <FileText size={18} /> Contratos
+              </button>
+              <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { resetForm(); setShowForm(true); }}>
+                <Plus size={18} /> Nueva Instalación
+              </button>
+            </div>
           </div>
         </div>
 
