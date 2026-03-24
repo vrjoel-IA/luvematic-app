@@ -14,6 +14,9 @@ import { TechDashboard, TechAvisoDetail } from './components/avisos/TechViews';
 
 // Mantenimientos
 import { MantDashboardAdmin, MantDashboardTech } from './components/mantenimientos/MantViews';
+import { MantClientes } from './components/mantenimientos/MantClientes';
+import { MantClienteDetalle } from './components/mantenimientos/MantClienteDetalle';
+import { MantInstalacionDetalle } from './components/mantenimientos/MantInstalacionDetalle';
 
 function App() {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('luvematic_user')));
@@ -52,6 +55,9 @@ function App() {
 
         {/* ========== MANTENIMIENTOS ========== */}
         <Route path="/admin/mantenimientos" element={isAdmin ? <MantDashboardAdmin user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/mantenimientos/clientes" element={isAdmin ? <MantClientes user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/mantenimientos/cliente/:id" element={isAdmin ? <MantClienteDetalle user={user} /> : <Navigate to="/" />} />
+        <Route path="/admin/mantenimientos/instalacion/:id" element={isAdmin ? <MantInstalacionDetalle user={user} /> : <Navigate to="/" />} />
         <Route path="/tecnico/mantenimientos" element={isTech ? <MantDashboardTech user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
