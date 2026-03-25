@@ -174,13 +174,15 @@ export function MantTechDetalle({ user }) {
     const sinResponder = plantillas.some(p => !respuestas[p.id]?.respuesta);
     if (sinResponder) return alert("Por favor, responde todas las preguntas del checklist.");
     
-    // Check mandatory photos
+    const sinTextoMal = plantillas.some(p => respuestas[p.id]?.respuesta === 'Mal estado' && (!respuestas[p.id]?.observacion || respuestas[p.id].observacion.trim() === ''));
+    if (sinTextoMal) return alert("Por favor, escriba obligatoriamente la observación para los ítems marcados como 'Mal estado'.");
+
+    // Check mandatory photos (optional if just mal estado, mandatory if defined in DB)
     const faltaFoto = plantillas.some(p => {
       const resp = respuestas[p.id];
-      const isMal = resp?.respuesta === 'Mal estado';
-      return (isMal || p.foto_obligatoria) && !resp?.foto_url && !resp?.file;
+      return p.foto_obligatoria && !resp?.foto_url && !resp?.file;
     });
-    if (faltaFoto) return alert("Falta subir fotos obligatorias para ítems críticos o en mal estado.");
+    if (faltaFoto) return alert("Falta subir evidencia fotográfica para puntos de revisión críticos.");
 
     if (!sinFirma && !nombreFirma) return alert("Debe introducir el nombre del firmante.");
     if (!sinFirma && sigCanvas.current.isEmpty && sigCanvas.current.isEmpty()) return alert("Debe recoger la firma del cliente.");
@@ -299,7 +301,7 @@ export function MantTechDetalle({ user }) {
     doc.setTextColor(10, 35, 66); 
     doc.setFontSize(20); 
     doc.setFont(undefined, 'bold');
-    doc.text(`Certificado Técnico de Mantenimiento LUVEMATIC`, 75, 20);
+    doc.text(`Certificado Técnico de Mantenimiento`, 75, 20);
     doc.setFont(undefined, 'normal'); 
     doc.setDrawColor(10, 35, 66); 
     doc.setLineWidth(0.8); 
@@ -434,10 +436,15 @@ export function MantTechDetalle({ user }) {
 
       <div style={{ padding: '1rem' }}>
         {/* NAV & STATUS */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
-          <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mant.Instalaciones?.direccion)}`, '_blank')} className="btn-secondary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
-            <MapPin size={18} /> Navegar
-          </button>
+          <div className="nav-btn-container" style={{ marginBottom: '1rem' }}>
+            <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mant.Instalaciones?.direccion)}`, '_blank')} className="btn-navegar" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', padding: '1.2rem', fontSize: '1.1rem', fontWeight: 800, borderRadius: '8px', border: '2px solid #ccc', backgroundColor: '#f9f9f9', color: '#555', cursor: 'pointer', transition: 'all 0.3s ease' }}>
+              <MapPin size={24} /> NAVEGAR A INSTALACIÓN
+            </button>
+            <style>{`
+              .btn-navegar:hover, .btn-navegar:active { border-color: #0A2342 !important; color: #0A2342 !important; background-color: #eaf1f8 !important; }
+            `}</style>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
           {step === 5 && isOnline && (
             <button onClick={generatePDF} className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
               <Download size={18} /> PDF
@@ -504,7 +511,7 @@ export function MantTechDetalle({ user }) {
                           <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.5rem 1rem', backgroundColor: '#f0f4f8', border: '1px dashed #0A2342', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
                               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleChecklistUpload(p.id, e.target.files[0])} />
-                              <Camera size={16} color="#0A2342" /> {respuestas[p.id]?.foto_url ? 'Cambiar Foto' : 'Adjuntar Foto (Req.)'}
+                              <Camera size={16} color="#0A2342" /> {respuestas[p.id]?.foto_url ? 'Cambiar Foto' : (p.foto_obligatoria ? 'Adjuntar Foto (Obligatorio)' : 'Adjuntar Foto (Opcional)')}
                             </label>
                             {respuestas[p.id]?.foto_url && <img src={respuestas[p.id].foto_url} alt="Evidencia" style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '4px' }} />}
                           </div>
@@ -517,23 +524,23 @@ export function MantTechDetalle({ user }) {
             )}
 
             {/* PASO 3: OBS GENERALES */}
-            {step === 3 && (
-               <div className="card" style={{ padding: '1.5rem' }}>
-                 <h2 style={{ marginBottom: '1rem' }}>Paso 3: Observaciones Generales</h2>
-                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Añade cualquier recomendación, consumo de material o trabajo extra no cubierto en el checklist.</p>
-                 <textarea 
-                   className="form-input" 
-                   rows={6}
-                   value={observaciones}
-                   onChange={e => setObservaciones(e.target.value)}
-                   placeholder="Ej: Se requiere cambiar próximamente el rodamiento superior..."
-                 />
-                 <div style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
-                   <button onClick={() => setStep(2)} className="btn-secondary" style={{ flex: 1 }}>Atrás</button>
-                   <button onClick={() => setStep(4)} className="btn-primary" style={{ flex: 1 }}>Continuar</button>
-                 </div>
-               </div>
-            )}
+             {step === 3 && (
+                <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', minHeight: '60vh' }}>
+                  <h2 style={{ marginBottom: '1rem' }}>Paso 3: Observaciones Generales</h2>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Añade cualquier recomendación, consumo de material o trabajo extra no cubierto en el checklist.</p>
+                  <textarea 
+                    className="form-input" 
+                    value={observaciones}
+                    onChange={e => setObservaciones(e.target.value)}
+                    placeholder="Ej: Se requiere cambiar próximamente el rodamiento superior..."
+                    style={{ flex: 1, resize: 'none' }}
+                  />
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                    <button onClick={() => setStep(2)} className="btn-secondary" style={{ flex: 1 }}>Atrás</button>
+                    <button onClick={() => setStep(4)} className="btn-primary" style={{ flex: 1 }}>Continuar</button>
+                  </div>
+                </div>
+             )}
 
             {/* PASO 4: FIRMA Y CIERRE */}
             {step === 4 && (
