@@ -57,9 +57,6 @@ export function MantTechDetalle({ user }) {
       if (!observaciones) {
         return alert('Por favor, añada observaciones de las tareas realizadas (aceitado, revisiones puntuales, etc.)');
       }
-      if (fotos.length < 1) {
-        return alert('Debe adjuntar al menos una fotografía de la revisión.');
-      }
     }
 
     setStatusLoading(true);
@@ -291,7 +288,7 @@ export function MantTechDetalle({ user }) {
             
             {mant.estado !== 'completado' && (
               <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed #0A2342', borderRadius: '8px', aspectRatio: '1', cursor: 'pointer', backgroundColor: '#f0f4f8', color: '#0A2342' }}>
-                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFileUpload} disabled={uploading} />
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} disabled={uploading} />
                 <Camera size={24} style={{ marginBottom: '5px' }} />
                 <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{uploading ? 'Subiendo...' : 'Añadir PDF/Foto'}</span>
               </label>
