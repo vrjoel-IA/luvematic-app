@@ -106,7 +106,7 @@ export function MantDashboardTech({ user }) {
       ) : (
         <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {hoy.map(m => (
-            <div key={m.id} className="card" style={{ padding: '1rem', borderLeft: `4px solid ${FREQ_COLORS[m.frecuencia]}`, cursor: 'pointer' }}>
+            <div key={m.id} onClick={() => navigate(`/tecnico/mantenimiento/${m.id}`)} className="card" style={{ padding: '1rem', borderLeft: `4px solid ${FREQ_COLORS[m.frecuencia]}`, cursor: 'pointer' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -133,7 +133,7 @@ export function MantDashboardTech({ user }) {
           </div>
           <div style={{ display: 'grid', gap: '0.4rem' }}>
             {proximos.map(m => (
-              <div key={m.id} className="card" style={{ padding: '0.7rem 1rem', opacity: 0.85 }}>
+              <div key={m.id} onClick={() => navigate(`/tecnico/mantenimiento/${m.id}`)} className="card" style={{ padding: '0.7rem 1rem', opacity: 0.85, cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia] }}>{m.frecuencia}</span>

@@ -19,6 +19,7 @@ import { MantClienteDetalle } from './components/mantenimientos/MantClienteDetal
 import { MantInstalacionDetalle } from './components/mantenimientos/MantInstalacionDetalle';
 import { MantContratos } from './components/mantenimientos/MantContratos';
 import { MantListado } from './components/mantenimientos/MantListado';
+import { MantTechDetalle } from './components/mantenimientos/MantTechDetalle';
 
 function App() {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('luvematic_user')));
@@ -63,6 +64,7 @@ function App() {
         <Route path="/admin/mantenimientos/contratos/:clienteId" element={isAdmin ? <MantContratos user={user} /> : <Navigate to="/" />} />
         <Route path="/admin/mantenimientos/listado" element={isAdmin ? <MantListado user={user} /> : <Navigate to="/" />} />
         <Route path="/tecnico/mantenimientos" element={isTech ? <MantDashboardTech user={user} /> : <Navigate to="/" />} />
+        <Route path="/tecnico/mantenimiento/:id" element={isTech ? <MantTechDetalle user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
