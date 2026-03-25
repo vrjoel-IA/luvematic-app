@@ -255,8 +255,10 @@ export function MantTechDetalle({ user }) {
 
       // Remove old answers and insert new
       await supabase.from('Checklist_Respuestas').delete().eq('id_mantenimiento', id);
+      let savedRespuestas = [];
       if (dbRespuestas.length > 0) {
-        await supabase.from('Checklist_Respuestas').insert(dbRespuestas);
+        const { data } = await supabase.from('Checklist_Respuestas').insert(dbRespuestas).select();
+        savedRespuestas = data || [];
       }
       if (dbFotosExtra.length > 0) {
         await supabase.from('Fotos_Mantenimientos').insert(dbFotosExtra);
@@ -275,6 +277,32 @@ export function MantTechDetalle({ user }) {
       if (horaInicio) payload.hora_inicio = horaInicio;
 
       await supabase.from('Mantenimientos').update(payload).eq('id', id);
+
+      // 4. Auto-generar Incidencias reales para el módulo de Mantenimientos si existen puntos en "Mal estado"
+      const ptsMalEstado = savedRespuestas.filter(r => r.respuesta === 'Mal estado');
+      if (ptsMalEstado.length > 0) {
+        // Find if this exact maintenance already generated incidencias
+        const { data: existIncidencias } = await supabase.from('Incidencias')
+          .select('id_checklist_respuesta')
+          .eq('id_mantenimiento', id);
+          
+        const existSet = new Set((existIncidencias || []).map(e => e.id_checklist_respuesta));
+
+        const newIncidencias = ptsMalEstado.filter(r => !existSet.has(r.id)).map(r => {
+          const pDesc = plantillas.find(p => p.id === r.id_plantilla)?.descripcion || 'Punto de revisión';
+          return {
+            id_mantenimiento: id,
+            id_checklist_respuesta: r.id,
+            id_puerta: mant.Instalaciones?.Puertas?.[0]?.id || null, // Best guess at the affected door
+            estado: 'Detectada',
+            descripcion: `Fallo detectado en: ${pDesc}\nObservaciones del técnico: ${r.observacion || 'Sin observaciones detalladas.'}`
+          };
+        });
+
+        if (newIncidencias.length > 0) {
+          await supabase.from('Incidencias').insert(newIncidencias);
+        }
+      }
 
       // Clean local storage
       localStorage.removeItem(`mant_draft_${id}`);
