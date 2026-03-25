@@ -19,7 +19,7 @@ export function MantInstalacionDetalle({ user }) {
   const [editingId, setEditingId] = useState(null);
   
   const initialForm = {
-    tipo: 'Seccional', marca: '', modelo: '', numero_serie: '', estado: 'operativa',
+    tipo: 'Seccional', identificador: '', marca: '', modelo: '', numero_serie: '', estado: 'operativa',
     accesorios: [],
     // Contract & Maintenance scheduling
     frecuencia_mant: 'mensual',
@@ -53,7 +53,7 @@ export function MantInstalacionDetalle({ user }) {
 
   const handleEdit = (p) => {
     setForm({
-      tipo: p.tipo, marca: p.marca || '', modelo: p.modelo || '', numero_serie: p.numero_serie || '', 
+      tipo: p.tipo, identificador: p.identificador || '', marca: p.marca || '', modelo: p.modelo || '', numero_serie: p.numero_serie || '', 
       estado: p.estado, accesorios: p.accesorios || [],
       frecuencia_mant: p.frecuencia_mant || 'mensual',
       inicio_contrato: p.inicio_contrato || '', 
@@ -185,11 +185,14 @@ export function MantInstalacionDetalle({ user }) {
               
               <form onSubmit={handleSubmit}>
                 <h3 style={{ color: '#0A2342', borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>1. Configuración de la Puerta</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                   <div className="input-group"><label>Tipo de Puerta *</label>
                     <select value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })}>
                       {TIPOS_PUERTA.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
+                  </div>
+                  <div className="input-group"><label>Ubicación / Nombramiento</label>
+                    <input type="text" value={form.identificador} onChange={e => setForm({ ...form, identificador: e.target.value })} placeholder="Ej: Puerta Principal" />
                   </div>
                   <div className="input-group"><label>Estado Actual</label>
                     <select value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value })}>
@@ -305,7 +308,7 @@ export function MantInstalacionDetalle({ user }) {
                     <DoorOpen size={24} color="#0A2342" />
                     <div>
                       <strong style={{ fontSize: '1.2rem', color: '#0A2342' }}>{p.tipo}</strong>
-                      <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Puerta {idx + 1}</span>
+                      <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{p.identificador || `Puerta ${idx + 1}`}</span>
                     </div>
                   </div>
                   <span className="pill" style={{ backgroundColor: estadoColor[p.estado] }}>

@@ -22,6 +22,7 @@ export function MantListado({ user }) {
   // UI State
   const [expandedGrupo, setExpandedGrupo] = useState(null);
   const [draggedMant, setDraggedMant] = useState(null);
+  const [detailMant, setDetailMant] = useState(null);
 
   // Group Form
   const [showGrupoForm, setShowGrupoForm] = useState(false);
@@ -35,7 +36,7 @@ export function MantListado({ user }) {
     const { data: mData } = await supabase.from('Mantenimientos').select(`
       *,
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
-      Puertas ( tipo )
+      Puertas ( tipo, identificador, accesorios )
     `).order('fecha_programada');
     
     setGrupos(gData || []);
@@ -103,36 +104,41 @@ export function MantListado({ user }) {
     <div className="dashboard-layout">
       <MantSidebar user={user} />
       <div className="main-content">
-        <div className="header" style={{ marginBottom: '1rem' }}>
-          <h1>Panel de Grupos y Listado</h1>
-          <button className="btn-primary" style={{ width: 'auto' }} onClick={() => setShowGrupoForm(true)}>
+        <div className="header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ margin: 0 }}>Panel de Grupos y Listado</h1>
+          <button className="btn-primary" style={{ width: 'auto', margin: 0, padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setShowGrupoForm(true)}>
             <Plus size={18}/> Nuevo Grupo Temático
           </button>
         </div>
 
         {/* Filters Toolbar */}
-        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'white', padding: '0.4rem', borderRadius: '8px', border: '1px solid #ddd' }}>
             <button className="icon-btn" onClick={() => setListPeriod(p => p.month === 0 ? { month: 11, year: p.year - 1 } : { ...p, month: p.month - 1 })}><ChevronLeft size={20}/></button>
-            <h3 style={{ margin: 0, minWidth: '150px', textAlign: 'center' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
+            <h3 style={{ margin: 0, minWidth: '140px', textAlign: 'center', color: '#0A2342' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
             <button className="icon-btn" onClick={() => setListPeriod(p => p.month === 11 ? { month: 0, year: p.year + 1 } : { ...p, month: p.month + 1 })}><ChevronRight size={20}/></button>
           </div>
-          <button className="btn-secondary" onClick={setHoy} style={{ width: 'auto', padding: '0.4rem 1rem' }}>Ir a Hoy</button>
           
-          <div style={{ borderLeft: '1px solid #ccc', height: '30px', margin: '0 10px' }}></div>
+          <button onClick={setHoy} style={{ width: 'auto', padding: '0.6rem 1.2rem', backgroundColor: '#0A2342', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}>
+            Ir a Hoy
+          </button>
           
-          <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}>
-            <option value="todos">Todas las frecuencias</option>
-            <option value="mensual">Mensual</option>
-            <option value="trimestral">Trimestral</option>
-            <option value="semestral">Semestral</option>
-            <option value="anual">Anual</option>
-          </select>
+          <div style={{ borderLeft: '2px solid #ddd', height: '35px' }}></div>
           
-          <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}>
-            <option value="todos">Todos los Estados</option>
-            {Object.keys(ESTADO_LABELS).map(k => <option key={k} value={k}>{ESTADO_LABELS[k]}</option>)}
-          </select>
+          <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
+            <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white' }}>
+              <option value="todos">Todas las frecuencias</option>
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="semestral">Semestral</option>
+              <option value="anual">Anual</option>
+            </select>
+            
+            <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white' }}>
+              <option value="todos">Todos los Estados</option>
+              {Object.keys(ESTADO_LABELS).map(k => <option key={k} value={k}>{ESTADO_LABELS[k]}</option>)}
+            </select>
+          </div>
         </div>
 
         {/* Modal Nuevo Grupo */}
@@ -198,7 +204,7 @@ export function MantListado({ user }) {
                       <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Arrastra mantenimientos aquí o créalos asociados a este grupo en la configuración de la Puerta.</p>
                     ) : (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
-                        {mantsDelGrupo.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} />)}
+                        {mantsDelGrupo.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} />)}
                       </div>
                     )}
                   </div>
@@ -223,11 +229,14 @@ export function MantListado({ user }) {
               <p style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Estupendo, todas las operaciones de este mes están en sus grupos.</p>
             ) : (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
-                 {unassignedMants.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} />)}
+                 {unassignedMants.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} />)}
                </div>
             )}
           </div>
         </div>
+
+        {/* Modal de Detalle */}
+        {detailMant && <MantDetailModal m={detailMant} onClose={() => setDetailMant(null)} />}
 
       </div>
     </div>
@@ -235,7 +244,7 @@ export function MantListado({ user }) {
 }
 
 // Widget de Tarjeta Individual de Mantenimiento (Sirve para hacer drag&drop y cambiar fecha)
-function MantItem({ m, onDragStart, changeDate }) {
+function MantItem({ m, onDragStart, changeDate, onClick }) {
   return (
     <div 
       draggable 
@@ -243,18 +252,18 @@ function MantItem({ m, onDragStart, changeDate }) {
       style={{ 
         border: '1px solid #eee', borderRadius: '8px', padding: '1rem', background: 'white', 
         cursor: 'grab', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'relative',
-        borderLeft: `4px solid ${FREQ_COLORS[m.frecuencia] || '#ccc'}`
+        borderLeft: `6px solid ${ESTADO_COLORS[m.estado] || '#ccc'}`
       }}
       onDragEnd={(e) => e.target.style.opacity = '1'}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-         <strong style={{ fontSize: '1.1rem', color: '#0A2342' }}>{m.Instalaciones?.direccion || 'Desconocida'}</strong>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }} onClick={onClick}>
+         <strong style={{ fontSize: '1.1rem', color: '#0A2342', cursor: 'pointer' }}>{m.Instalaciones?.direccion || 'Desconocida'}</strong>
          <span className="pill" style={{ backgroundColor: ESTADO_COLORS[m.estado], color: 'white', fontSize: '0.7rem' }}>{ESTADO_LABELS[m.estado]}</span>
       </div>
 
-      <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px' }}>
+      <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px', cursor: 'pointer' }} onClick={onClick}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-          <DoorOpen size={14} /> Puerta: <strong>{m.Puertas?.tipo || 'Sin Especificar'}</strong>
+          <DoorOpen size={14} /> Puerta: <strong>{m.Puertas?.tipo || 'Sin Especificar'}</strong> {m.Puertas?.identificador && `(${m.Puertas.identificador})`}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
            <Clock size={14} /> Frecuencia: <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span>
@@ -276,3 +285,62 @@ function MantItem({ m, onDragStart, changeDate }) {
     </div>
   );
 }
+
+function MantDetailModal({ m, onClose }) {
+  const puerta = m.Puertas || {};
+  const accesorios = puerta.accesorios || [];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+      <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+          <div>
+            <h2 style={{ margin: 0, color: '#0A2342' }}>Detalle de Mantenimiento</h2>
+            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '0.9rem' }}>{m.Instalaciones?.direccion}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}><X size={24} /></button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#0A2342' }}>Puerta</h4>
+            <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Tipo:</strong> {puerta.tipo || 'N/A'}</div>
+            <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Ubicación:</strong> {puerta.identificador || 'N/A'}</div>
+            <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Estado Mant:</strong> <span className="pill" style={{ backgroundColor: ESTADO_COLORS[m.estado], color: 'white', fontSize: '0.7rem' }}>{ESTADO_LABELS[m.estado]}</span></div>
+          </div>
+          <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#0A2342' }}>Programación</h4>
+            <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Frecuencia:</strong> <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span></div>
+            <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Fecha Prevista:</strong> {new Date(m.fecha_programada).toLocaleDateString()}</div>
+          </div>
+        </div>
+
+        <h4 style={{ color: '#0A2342', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>Accesorios y Elementos</h4>
+        {accesorios.length === 0 ? (
+          <p style={{ fontSize: '0.9rem', color: '#666', fontStyle: 'italic' }}>No hay accesorios extra definidos para esta puerta.</p>
+        ) : (
+          <table style={{ width: '100%', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <thead>
+              <tr style={{ background: '#f1f1f1', textAlign: 'left' }}>
+                <th style={{ padding: '8px' }}>Elemento</th>
+                <th style={{ padding: '8px' }}>Marca</th>
+                <th style={{ padding: '8px' }}>Modelo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accesorios.map((a, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '8px' }}>{a.elemento}</td>
+                  <td style={{ padding: '8px' }}>{a.marca || '-'}</td>
+                  <td style={{ padding: '8px' }}>{a.modelo || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
