@@ -35,7 +35,7 @@ export function MantListado({ user }) {
   const fetchAll = async () => {
     // We bring all maintainances, but filter in JS by the Period selected
     const { data: gData } = await supabase.from('Grupos_Mantenimiento').select('*').order('orden');
-    const { data: tData } = await supabase.from('Usuarios').select('id_usuario, nombre_completo').eq('rol', 'Tecnico').eq('activo', true);
+    const { data: tData } = await supabase.from('Usuarios').select('*').eq('rol', 'Tecnico');
     const { data: mData } = await supabase.from('Mantenimientos').select(`
       *,
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
