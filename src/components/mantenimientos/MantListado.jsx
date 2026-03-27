@@ -107,15 +107,31 @@ export function MantListado({ user }) {
 
   const assignSelected = async () => {
     const selector = document.getElementById('tecnico-selector');
+    const dateSelector = document.getElementById('assigned-date-selector');
+
     const tecId = selector ? selector.value : '';
+    const selectedDate = dateSelector ? dateSelector.value : '';
+
     if (!tecId) return alert('Selecciona un técnico primero.');
     
     const isUnassign = tecId === 'unassign';
     const finalId = isUnassign ? null : tecId;
     const finalEstado = isUnassign ? 'programado' : 'asignado';
     
-    setMantenimientos(prev => prev.map(m => selectedMants.includes(m.id) ? { ...m, id_tecnico: finalId, estado: finalEstado } : m));
-    await supabase.from('Mantenimientos').update({ id_tecnico: finalId, estado: finalEstado }).in('id', selectedMants);
+    setMantenimientos(prev => prev.map(m => {
+      if (!selectedMants.includes(m.id)) return m;
+      return { 
+        ...m, 
+        id_tecnico: finalId, 
+        estado: finalEstado,
+        ...(selectedDate ? { fecha_programada: selectedDate } : {})
+      };
+    }));
+
+    const updates = { id_tecnico: finalId, estado: finalEstado };
+    if (selectedDate) updates.fecha_programada = selectedDate;
+
+    await supabase.from('Mantenimientos').update(updates).in('id', selectedMants);
     setSelectedMants([]);
   };
 
@@ -262,14 +278,22 @@ export function MantListado({ user }) {
 
         {/* Floating Action Bar para Asignación Masiva */}
         {selectedMants.length > 0 && (
-          <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', background: '#0A2342', color: 'white', padding: '1rem 2rem', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 1100 }}>
-            <span style={{ fontWeight: 'bold' }}>{selectedMants.length} seleccionados</span>
+          <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#0A2342', color: 'white', padding: '1rem 2rem', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 1100, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{selectedMants.length} seleccionados</span>
+            <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)', height: '24px' }}></div>
+            
             <select id="tecnico-selector" style={{ padding: '0.4rem', borderRadius: '4px', border: 'none', color: '#333' }} defaultValue="">
-              <option value="" disabled>Seleccionar Técnico...</option>
+              <option value="" disabled>1. Seleccionar Técnico...</option>
               {tecnicos.map(t => <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>)}
               <option value="unassign" style={{ color: 'red' }}>Quitar Técnico (Desasignar)</option>
             </select>
-            <button style={{ padding: '0.4rem 1rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }} onClick={assignSelected}>Aplicar</button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '0.8rem', opacity: 0.9 }}>2. Fecha (Opcional):</span>
+              <input type="date" id="assigned-date-selector" style={{ padding: '0.2rem', borderRadius: '4px', border: 'none', color: '#333', fontSize: '0.8rem' }} />
+            </div>
+
+            <button style={{ padding: '0.4rem 1rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap' }} onClick={assignSelected}>Aplicar Cambios</button>
             <button onClick={() => setSelectedMants([])} style={{ background: 'none', border: 'none', color: '#ffcccc', cursor: 'pointer', display: 'flex' }}><X size={20}/></button>
           </div>
         )}
