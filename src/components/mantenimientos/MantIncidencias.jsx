@@ -16,6 +16,7 @@ export function MantIncidencias({ user }) {
   const [incidencias, setIncidencias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Activas');
+  const [tecnicos, setTecnicos] = useState([]);
   
   // To keep track of which Installation accordion is open
   const [openInstalaciones, setOpenInstalaciones] = useState({});
@@ -43,6 +44,9 @@ export function MantIncidencias({ user }) {
         
       if (error) throw error;
       setIncidencias(data || []);
+
+      const { data: techData } = await supabase.from('Usuarios').select('id_usuario, nombre_completo').in('rol', ['Tecnico', 'Direccion', 'Administrador']);
+      setTecnicos(techData || []);
     } catch (err) {
       console.error(err);
     }
@@ -58,6 +62,16 @@ export function MantIncidencias({ user }) {
       fetchIncidencias();
     } catch (err) {
       alert("Error actualizando estado.");
+    }
+  };
+
+  const updateTecnico = async (id, id_tecnico) => {
+    try {
+      const { error } = await supabase.from('Incidencias').update({ id_tecnico_reparacion: id_tecnico || null }).eq('id', id);
+      if (error) throw error;
+      fetchIncidencias();
+    } catch (err) {
+      alert("Error asignando técnico.");
     }
   };
 
@@ -141,12 +155,22 @@ export function MantIncidencias({ user }) {
         </div>
 
         {/* Filters */}
-        <div className="filters-bar" style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <button className={`btn-secondary ${filter === 'Todas' ? 'active-filter' : ''}`} onClick={() => setFilter('Todas')}>Todas</button>
-          <button className={`btn-secondary ${filter === 'Activas' ? 'active-filter' : ''}`} onClick={() => setFilter('Activas')}>Activas</button>
-          {ESTADOS.map(es => (
-            <button key={es} className={`btn-secondary ${filter === es ? 'active-filter' : ''}`} onClick={() => setFilter(es)}>{es}</button>
-          ))}
+        <div className="filters-bar" style={{ display: 'flex', marginBottom: '1.5rem', background: 'white', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', alignItems: 'center', gap: '10px' }}>
+          <strong style={{ color: '#0A2342' }}>Visualizando:</strong>
+          <select 
+            className="input-field" 
+            style={{ width: 'auto', margin: 0, padding: '8px 30px 8px 10px' }}
+            value={filter} 
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="Activas">Solo Activas (Requieren acción)</option>
+            <option value="Todas">Todas (Histórico Completo)</option>
+            <optgroup label="Por Estado Específico">
+              {ESTADOS.map(es => (
+                <option key={es} value={es}>{es}</option>
+              ))}
+            </optgroup>
+          </select>
           <style>{`
             .active-filter { background-color: #0A2342 !important; color: white !important; border-color: #0A2342 !important; }
             .incidencia-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1rem; overflow: hidden; }
@@ -234,9 +258,17 @@ export function MantIncidencias({ user }) {
 
                                       <div style={{ marginBottom: '1rem' }}>
                                         <label style={{ fontSize: '0.8rem', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Técnico Asignado a Reparo</label>
-                                        <span style={{ fontSize: '0.9rem', color: '#555' }}>
-                                          {inc.Usuarios?.nombre_completo || 'Sin asignar (Pendiente)'}
-                                        </span>
+                                        <select 
+                                          className="form-input" 
+                                          style={{ width: '100%', padding: '0.4rem', fontSize: '0.9rem' }}
+                                          value={inc.Usuarios?.nombre_completo ? inc.id_tecnico_reparacion : ''}
+                                          onChange={(e) => updateTecnico(inc.id, e.target.value)}
+                                        >
+                                          <option value="">-- Sin Asignar --</option>
+                                          {tecnicos.map(t => (
+                                            <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>
+                                          ))}
+                                        </select>
                                       </div>
                                       
                                       <div>
