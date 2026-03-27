@@ -350,7 +350,7 @@ function MantItem({ m, onDragStart, changeDate, onClick, isSelected, onToggleSel
   );
 }
 
-function MantDetailModal({ m, onClose }) {
+export function MantDetailModal({ m, onClose }) {
   const puerta = m.Puertas || {};
   const accesorios = puerta.accesorios || [];
 

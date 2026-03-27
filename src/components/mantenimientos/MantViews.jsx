@@ -1,7 +1,8 @@
 // Mantenimientos — Sidebar + Dashboard components
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, CheckCircle, BarChart2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, CheckCircle, BarChart2, X } from 'lucide-react';
+import { MantDetailModal } from './MantListado';
 import { supabase } from '../../supabase';
 
 export function MantSidebar({ user }) {
@@ -50,13 +51,32 @@ export function MantSidebar({ user }) {
 
 export function MantDashboardAdmin({ user }) {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ programados: 0, enCurso: 0, completados: 0, incidencias: 0 });
+  const [stats, setStats] = useState({ programados: [], enCurso: [], completados: [], incidenciasObj: [] });
   const [proximos, setProximos] = useState([]);
   const [incidenciasRecientes, setIncidenciasRecientes] = useState([]);
+
+  // Modals state
+  const [listModal, setListModal] = useState({ open: false, title: '', filterKey: null }); // filterKey to read from stats
+  const [detailModal, setDetailModal] = useState(null); // stores the maintenance object
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const openListModal = (title, filterKey) => {
+    setListModal({ open: true, title, filterKey });
+  };
+
+  const openDetailModal = async (mantId) => {
+    // Fetch full detail with accesorios
+    const { data } = await supabase.from('Mantenimientos')
+      .select('*, Instalaciones(direccion), Puertas(*)')
+      .eq('id', mantId)
+      .single();
+    if (data) {
+      setDetailModal(data);
+    }
+  };
 
   const fetchDashboardData = async () => {
     const now = new Date();
@@ -64,39 +84,45 @@ export function MantDashboardAdmin({ user }) {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const { data: mData } = await supabase.from('Mantenimientos')
-      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador)')
+      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador, accesorios)')
       .gte('fecha_programada', startOfMonth)
-      .lte('fecha_programada', endOfMonth);
+      .lte('fecha_programada', endOfMonth)
+      .order('fecha_programada', { ascending: true });
 
     if (mData) {
       setStats(prev => ({
         ...prev,
-        programados: mData.filter(m => ['programado', 'asignado'].includes(m.estado)).length,
-        enCurso: mData.filter(m => m.estado === 'en_curso').length,
-        completados: mData.filter(m => m.estado === 'completado').length,
+        programados: mData.filter(m => ['programado', 'asignado'].includes(m.estado)),
+        enCurso: mData.filter(m => m.estado === 'en_curso'),
+        completados: mData.filter(m => m.estado === 'completado'),
       }));
     }
 
     const todayStr = now.toISOString().split('T')[0];
     const { data: proxData } = await supabase.from('Mantenimientos')
-      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador)')
+      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador, accesorios)')
       .in('estado', ['programado', 'asignado', 'en_curso'])
       .gte('fecha_programada', todayStr)
       .order('fecha_programada', { ascending: true })
-      .limit(5);
+      .limit(10);
 
     if (proxData) setProximos(proxData);
 
+    // INNER join to ensure Mantenimiento still exists
     const { data: iData } = await supabase.from('Incidencias')
-      .select('id, estado, descripcion, created_at, Puertas(tipo, identificador, Instalaciones(direccion))')
+      .select('id, estado, descripcion, created_at, id_mantenimiento, Mantenimientos!inner(id), Puertas(tipo, identificador, Instalaciones(direccion))')
       .not('estado', 'in', '("cerrada","reparada")')
-      .order('created_at', { ascending: false })
-      .limit(5);
+      .order('created_at', { ascending: false });
 
     if (iData) {
-      setStats(prev => ({ ...prev, incidencias: iData.length }));
-      setIncidenciasRecientes(iData);
+      setStats(prev => ({ ...prev, incidenciasObj: iData }));
+      setIncidenciasRecientes(iData.slice(0, 5));
     }
+  };
+
+  const getListToRender = () => {
+    if (!listModal.filterKey) return [];
+    return stats[listModal.filterKey] || [];
   };
 
   return (
@@ -111,27 +137,27 @@ export function MantDashboardAdmin({ user }) {
 
         {/* KPIs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #0A2342 0%, #1a365d 100%)', color: 'white' }}>
+          <div className="card" onClick={() => openListModal('Visitas Pendientes (Mes)', 'programados')} style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #0A2342 0%, #1a365d 100%)', color: 'white', cursor: 'pointer', transition: 'transform 0.2s', transform: 'scale(1)' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <Calendar size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
-            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.programados}</h3>
+            <h3 style={{ margin: 0, fontSize: '2.5rem', color: 'white' }}>{stats.programados.length}</h3>
             <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Visitas Pendientes (Mes)</p>
           </div>
           
-          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)', color: 'white' }}>
+          <div className="card" onClick={() => openListModal('Mantenimientos en Curso', 'enCurso')} style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)', color: 'white', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <Clock size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
-            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.enCurso}</h3>
+            <h3 style={{ margin: 0, fontSize: '2.5rem', color: 'white' }}>{stats.enCurso.length}</h3>
             <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Mantenimientos en curso</p>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)', color: 'white' }}>
+          <div className="card" onClick={() => openListModal('Completados este Mes', 'completados')} style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)', color: 'white', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <CheckCircle size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
-            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.completados}</h3>
+            <h3 style={{ margin: 0, fontSize: '2.5rem', color: 'white' }}>{stats.completados.length}</h3>
             <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Completados este mes</p>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #E63329 0%, #c82333 100%)', color: 'white' }}>
+          <div className="card" onClick={() => openListModal('Incidencias Abiertas', 'incidenciasObj')} style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #E63329 0%, #c82333 100%)', color: 'white', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <AlertTriangle size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
-            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.incidencias}</h3>
+            <h3 style={{ margin: 0, fontSize: '2.5rem', color: 'white' }}>{stats.incidenciasObj.length}</h3>
             <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Incidencias Abiertas</p>
           </div>
         </div>
@@ -148,7 +174,7 @@ export function MantDashboardAdmin({ user }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {proximos.map(m => (
-                  <div key={m.id} style={{ borderLeft: '4px solid #0A2342', paddingLeft: '1rem' }}>
+                  <div key={m.id} onClick={() => openDetailModal(m.id)} style={{ borderLeft: '4px solid #0A2342', paddingLeft: '1rem', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <strong style={{ color: '#333' }}>{m.Instalaciones?.direccion}</strong>
                       <span style={{ fontSize: '0.8rem', color: '#666' }}>{new Date(m.fecha_programada).toLocaleDateString()}</span>
@@ -161,7 +187,7 @@ export function MantDashboardAdmin({ user }) {
               </div>
             )}
             <button className="btn-secondary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={() => navigate('/admin/mantenimientos/listado')}>
-              Ver Listado Completo
+              Ir al Kanban Completo
             </button>
           </div>
 
@@ -174,7 +200,7 @@ export function MantDashboardAdmin({ user }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {incidenciasRecientes.map(inc => (
-                  <div key={inc.id} style={{ borderLeft: '4px solid #E63329', paddingLeft: '1rem' }}>
+                  <div key={inc.id} onClick={() => openDetailModal(inc.id_mantenimiento)} style={{ borderLeft: '4px solid #E63329', paddingLeft: '1rem', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <strong style={{ color: '#333' }}>{inc.Puertas?.Instalaciones?.direccion || 'Desconocida'}</strong>
                       <span className="pill" style={{ backgroundColor: '#ffe5e5', color: '#E63329', fontSize: '0.7rem' }}>
@@ -189,13 +215,51 @@ export function MantDashboardAdmin({ user }) {
               </div>
             )}
             <button className="btn-secondary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={() => navigate('/admin/mantenimientos/incidencias')}>
-              Gestionar Reparaciones
+              Gestionar Todas las Reparaciones
             </button>
           </div>
 
         </div>
 
       </div>
+
+      {/* MODAL LIST VIEW */}
+      {listModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+              <h2 style={{ margin: 0, color: '#0A2342' }}>{listModal.title}</h2>
+              <button onClick={() => setListModal({ open: false, title: '', filterKey: null })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem' }}>
+              {getListToRender().length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic', padding: '2rem 0' }}>No hay elementos en esta categoría.</p>
+              ) : (
+                getListToRender().map((item, idx) => (
+                  <div key={idx} onClick={() => { setListModal({ ...listModal, open: false }); openDetailModal(item.id_mantenimiento || item.id); }} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: '#f8f9fa' }} onMouseEnter={(e) => e.currentTarget.style.background = '#edf2f7'} onMouseLeave={(e) => e.currentTarget.style.background = '#f8f9fa'}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <strong style={{ color: '#0A2342' }}>{item.Instalaciones?.direccion || item.Puertas?.Instalaciones?.direccion || 'Desconocida'}</strong>
+                      {item.fecha_programada && <span style={{ fontSize: '0.85rem', color: '#666' }}>{new Date(item.fecha_programada).toLocaleDateString()}</span>}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#555' }}>
+                      {item.Puertas?.tipo} {item.Puertas?.identificador && `(${item.Puertas.identificador})`}
+                      {item.descripcion && <div><strong style={{ color: '#E63329' }}>Avería:</strong> {item.descripcion}</div>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailModal && (
+        <MantDetailModal m={detailModal} onClose={() => setDetailModal(null)} />
+      )}
     </div>
   );
 }
