@@ -17,13 +17,14 @@ export function MantIncidencias({ user }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Activas');
   const [tecnicos, setTecnicos] = useState([]);
+  const [assignDrafts, setAssignDrafts] = useState({});
   
   // To keep track of which Installation accordion is open
   const [openInstalaciones, setOpenInstalaciones] = useState({});
 
-  const fetchIncidencias = async () => {
+  const fetchIncidencias = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { data, error } = await supabase
         .from('Incidencias')
         .select(`
@@ -36,7 +37,8 @@ export function MantIncidencias({ user }) {
               direccion
             )
           ),
-          Puertas ( id, tipo ),
+          ),
+          Puertas ( id, tipo, id_instalacion ),
           Usuarios!id_tecnico_reparacion ( nombre_completo ),
           Checklist_Respuestas ( observacion, url_foto )
         `)
@@ -50,7 +52,48 @@ export function MantIncidencias({ user }) {
     } catch (err) {
       console.error(err);
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
+  };
+
+  const handleDraftChange = (id, field, val) => {
+    setAssignDrafts(prev => ({ ...prev, [id]: { ...prev[id], [field]: val } }));
+  };
+
+  const crearMantenimientoCorrectivo = async (inc) => {
+    const draft = assignDrafts[inc.id];
+    if (!draft || !draft.tecnico || !draft.fecha) {
+      return alert("Selecciona un técnico y una fecha para programar la reparación.");
+    }
+    try {
+      const instalacionId = inc.Mantenimientos?.Instalaciones?.id || inc.Puertas?.id_instalacion;
+      if (!instalacionId) return alert("Error: No se puede identificar la instalación raíz de esta puerta.");
+
+      // 1. Assign tech on Incidencia AND update status
+      await supabase.from('Incidencias')
+        .update({ id_tecnico_reparacion: draft.tecnico, estado: 'Aceptada' })
+        .eq('id', inc.id);
+
+      // 2. Create Corrective Maintenance
+      const { error: insErr } = await supabase.from('Mantenimientos').insert({
+        id_instalacion: instalacionId,
+        id_puerta: inc.id_puerta,
+        frecuencia: 'correctivo',
+        estado: 'asignado',
+        id_tecnico: draft.tecnico,
+        fecha_programada: draft.fecha,
+        observaciones: `REPARACIÓN AVERÍA: ${inc.descripcion}`,
+        orden_en_grupo: 99
+      });
+
+      if (insErr) throw insErr;
+      
+      alert("Mantenimiento correctivo creado y asignado al técnico.");
+      setAssignDrafts(prev => { const n = {...prev}; delete n[inc.id]; return n; });
+      fetchIncidencias(true);
+    } catch (e) {
+      alert("Error al coordinar la reparación.");
+      console.error(e);
+    }
   };
 
   useEffect(() => { fetchIncidencias(); }, []);
@@ -59,7 +102,7 @@ export function MantIncidencias({ user }) {
     try {
       const { error } = await supabase.from('Incidencias').update({ estado: newEstado }).eq('id', id);
       if (error) throw error;
-      fetchIncidencias();
+      fetchIncidencias(true);
     } catch (err) {
       alert("Error actualizando estado.");
     }
@@ -69,7 +112,7 @@ export function MantIncidencias({ user }) {
     try {
       const { error } = await supabase.from('Incidencias').update({ id_tecnico_reparacion: id_tecnico || null }).eq('id', id);
       if (error) throw error;
-      fetchIncidencias();
+      fetchIncidencias(true);
     } catch (err) {
       alert("Error asignando técnico.");
     }
@@ -81,7 +124,7 @@ export function MantIncidencias({ user }) {
     try {
       const { error } = await supabase.from('Incidencias').update({ presupuesto: val }).eq('id', id);
       if (error) throw error;
-      fetchIncidencias();
+      fetchIncidencias(true);
     } catch (err) {
       alert("Error actualizando presupuesto.");
     }
@@ -257,18 +300,46 @@ export function MantIncidencias({ user }) {
                                       </div>
 
                                       <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ fontSize: '0.8rem', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Técnico Asignado a Reparo</label>
-                                        <select 
-                                          className="form-input" 
-                                          style={{ width: '100%', padding: '0.4rem', fontSize: '0.9rem' }}
-                                          value={inc.Usuarios?.nombre_completo ? inc.id_tecnico_reparacion : ''}
-                                          onChange={(e) => updateTecnico(inc.id, e.target.value)}
-                                        >
-                                          <option value="">-- Sin Asignar --</option>
-                                          {tecnicos.map(t => (
-                                            <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>
-                                          ))}
-                                        </select>
+                                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#0A2342' }}>Coordinar Reparación (Generar Parte)</label>
+                                        
+                                        {inc.Usuarios?.nombre_completo ? (
+                                          <div style={{ padding: '0.8rem', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: '4px' }}>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#0d47a1' }}>
+                                              <strong>Técnico encargado:</strong> {inc.Usuarios.nombre_completo}
+                                            </p>
+                                          </div>
+                                        ) : (
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0.8rem', background: '#f8f9fa', border: '1px solid #eee', borderRadius: '4px' }}>
+                                            <select 
+                                              className="form-input" 
+                                              style={{ width: '100%', padding: '0.4rem', fontSize: '0.9rem' }}
+                                              value={(assignDrafts[inc.id] && assignDrafts[inc.id].tecnico) || ''}
+                                              onChange={(e) => handleDraftChange(inc.id, 'tecnico', e.target.value)}
+                                            >
+                                              <option value="">-- Elige Técnico --</option>
+                                              {tecnicos.map(t => (
+                                                <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>
+                                              ))}
+                                            </select>
+                                            
+                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                              <input 
+                                                type="date" 
+                                                className="form-input"
+                                                style={{ flex: 1, padding: '0.4rem', fontSize: '0.9rem' }}
+                                                value={(assignDrafts[inc.id] && assignDrafts[inc.id].fecha) || ''}
+                                                onChange={(e) => handleDraftChange(inc.id, 'fecha', e.target.value)}
+                                              />
+                                              <button 
+                                                onClick={() => crearMantenimientoCorrectivo(inc)}
+                                                className="btn-primary" 
+                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                              >
+                                                Asignar
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
                                       
                                       <div>

@@ -269,7 +269,7 @@ export function MantDashboardTech({ user }) {
   const [mantenimientos, setMantenimientos] = useState([]);
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63' };
+  const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63', correctivo: '#E63329' };
   const ESTADO_COLORS = { programado: '#0A2342', asignado: '#FF9800', en_curso: '#2196F3', completado: '#28a745' };
   const ESTADO_LABELS = { programado: 'Programado', asignado: 'Asignado', en_curso: 'En Curso', completado: 'Completado' };
 
