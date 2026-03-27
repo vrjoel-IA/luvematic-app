@@ -13,6 +13,8 @@ export function MantListado({ user }) {
   const now = new Date();
   const [grupos, setGrupos] = useState([]);
   const [mantenimientos, setMantenimientos] = useState([]);
+  const [tecnicos, setTecnicos] = useState([]);
+  const [selectedMants, setSelectedMants] = useState([]);
   
   // Filters
   const [listPeriod, setListPeriod] = useState({ month: now.getMonth(), year: now.getFullYear() });
@@ -33,6 +35,7 @@ export function MantListado({ user }) {
   const fetchAll = async () => {
     // We bring all maintainances, but filter in JS by the Period selected
     const { data: gData } = await supabase.from('Grupos_Mantenimiento').select('*').order('orden');
+    const { data: tData } = await supabase.from('Usuarios').select('id, nombre_completo').eq('rol', 'Tecnico').eq('activo', true);
     const { data: mData } = await supabase.from('Mantenimientos').select(`
       *,
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
@@ -40,6 +43,7 @@ export function MantListado({ user }) {
     `).order('fecha_programada');
     
     setGrupos(gData || []);
+    setTecnicos(tData || []);
     setMantenimientos(mData || []);
   };
 
@@ -95,6 +99,24 @@ export function MantListado({ user }) {
       if (filtroEstado !== 'todos' && m.estado !== filtroEstado) return false;
       return true;
     });
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedMants(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const assignSelected = async () => {
+    const selector = document.getElementById('tecnico-selector');
+    const tecId = selector ? selector.value : '';
+    if (!tecId) return alert('Selecciona un técnico primero.');
+    
+    const isUnassign = tecId === 'unassign';
+    const finalId = isUnassign ? null : tecId;
+    const finalEstado = isUnassign ? 'programado' : 'asignado';
+    
+    setMantenimientos(prev => prev.map(m => selectedMants.includes(m.id) ? { ...m, id_tecnico: finalId, estado: finalEstado } : m));
+    await supabase.from('Mantenimientos').update({ id_tecnico: finalId, estado: finalEstado }).in('id', selectedMants);
+    setSelectedMants([]);
   };
 
   const currentMants = getFilteredMantenimientos();
@@ -204,7 +226,7 @@ export function MantListado({ user }) {
                       <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Arrastra mantenimientos aquí o créalos asociados a este grupo en la configuración de la Puerta.</p>
                     ) : (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
-                        {mantsDelGrupo.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} />)}
+                        {mantsDelGrupo.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} isSelected={selectedMants.includes(m.id)} onToggleSelect={() => toggleSelect(m.id)} />)}
                       </div>
                     )}
                   </div>
@@ -229,7 +251,7 @@ export function MantListado({ user }) {
               <p style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Estupendo, todas las operaciones de este mes están en sus grupos.</p>
             ) : (
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
-                 {unassignedMants.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} />)}
+                 {unassignedMants.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} isSelected={selectedMants.includes(m.id)} onToggleSelect={() => toggleSelect(m.id)} />)}
                </div>
             )}
           </div>
@@ -238,13 +260,27 @@ export function MantListado({ user }) {
         {/* Modal de Detalle */}
         {detailMant && <MantDetailModal m={detailMant} onClose={() => setDetailMant(null)} />}
 
+        {/* Floating Action Bar para Asignación Masiva */}
+        {selectedMants.length > 0 && (
+          <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', background: '#0A2342', color: 'white', padding: '1rem 2rem', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 1100 }}>
+            <span style={{ fontWeight: 'bold' }}>{selectedMants.length} seleccionados</span>
+            <select id="tecnico-selector" style={{ padding: '0.4rem', borderRadius: '4px', border: 'none', color: '#333' }} defaultValue="">
+              <option value="" disabled>Seleccionar Técnico...</option>
+              {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre_completo}</option>)}
+              <option value="unassign" style={{ color: 'red' }}>Quitar Técnico (Desasignar)</option>
+            </select>
+            <button style={{ padding: '0.4rem 1rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }} onClick={assignSelected}>Aplicar</button>
+            <button onClick={() => setSelectedMants([])} style={{ background: 'none', border: 'none', color: '#ffcccc', cursor: 'pointer', display: 'flex' }}><X size={20}/></button>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
 
 // Widget de Tarjeta Individual de Mantenimiento (Sirve para hacer drag&drop y cambiar fecha)
-function MantItem({ m, onDragStart, changeDate, onClick }) {
+function MantItem({ m, onDragStart, changeDate, onClick, isSelected, onToggleSelect }) {
   return (
     <div 
       draggable 
@@ -256,7 +292,11 @@ function MantItem({ m, onDragStart, changeDate, onClick }) {
       }}
       onDragEnd={(e) => e.target.style.opacity = '1'}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }} onClick={onClick}>
+      <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+        <input type="checkbox" checked={isSelected} onChange={(e) => { e.stopPropagation(); onToggleSelect(); }} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', paddingRight: '25px' }} onClick={onClick}>
          <strong style={{ fontSize: '1.1rem', color: '#0A2342', cursor: 'pointer' }}>{m.Instalaciones?.direccion || 'Desconocida'}</strong>
          <span className="pill" style={{ backgroundColor: ESTADO_COLORS[m.estado], color: 'white', fontSize: '0.7rem' }}>{ESTADO_LABELS[m.estado]}</span>
       </div>
