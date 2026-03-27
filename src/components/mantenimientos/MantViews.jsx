@@ -1,7 +1,7 @@
 // Mantenimientos — Sidebar + Dashboard components
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, AlertTriangle, CheckCircle, BarChart2 } from 'lucide-react';
 import { supabase } from '../../supabase';
 
 export function MantSidebar({ user }) {
@@ -49,15 +49,152 @@ export function MantSidebar({ user }) {
 }
 
 export function MantDashboardAdmin({ user }) {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ programados: 0, enCurso: 0, completados: 0, incidencias: 0 });
+  const [proximos, setProximos] = useState([]);
+  const [incidenciasRecientes, setIncidenciasRecientes] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+    const { data: mData } = await supabase.from('Mantenimientos')
+      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador)')
+      .gte('fecha_programada', startOfMonth)
+      .lte('fecha_programada', endOfMonth);
+
+    if (mData) {
+      setStats(prev => ({
+        ...prev,
+        programados: mData.filter(m => ['programado', 'asignado'].includes(m.estado)).length,
+        enCurso: mData.filter(m => m.estado === 'en_curso').length,
+        completados: mData.filter(m => m.estado === 'completado').length,
+      }));
+    }
+
+    const todayStr = now.toISOString().split('T')[0];
+    const { data: proxData } = await supabase.from('Mantenimientos')
+      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador)')
+      .in('estado', ['programado', 'asignado', 'en_curso'])
+      .gte('fecha_programada', todayStr)
+      .order('fecha_programada', { ascending: true })
+      .limit(5);
+
+    if (proxData) setProximos(proxData);
+
+    const { data: iData } = await supabase.from('Incidencias')
+      .select('id, estado, descripcion, created_at, Puertas(tipo, identificador, Instalaciones(direccion))')
+      .not('estado', 'in', '("cerrada","reparada")')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (iData) {
+      setStats(prev => ({ ...prev, incidencias: iData.length }));
+      setIncidenciasRecientes(iData);
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       <MantSidebar user={user} />
       <div className="main-content">
-        <div className="header"><h1>Mantenimientos — Dashboard</h1></div>
-        <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '4rem' }}>
-          <h2 style={{ color: 'var(--text-muted)' }}>Módulo en Construcción</h2>
-          <p style={{ marginTop: '1rem' }}>Próximamente: Dashboard con estado del día, alertas y gráficas.</p>
+        <div className="header" style={{ marginBottom: '2rem' }}>
+          <h1 style={{ color: '#0A2342', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <BarChart2 size={28} /> Resumen de Actividad
+          </h1>
         </div>
+
+        {/* KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #0A2342 0%, #1a365d 100%)', color: 'white' }}>
+            <Calendar size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
+            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.programados}</h3>
+            <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Visitas Pendientes (Mes)</p>
+          </div>
+          
+          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)', color: 'white' }}>
+            <Clock size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
+            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.enCurso}</h3>
+            <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Mantenimientos en curso</p>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)', color: 'white' }}>
+            <CheckCircle size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
+            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.completados}</h3>
+            <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Completados este mes</p>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #E63329 0%, #c82333 100%)', color: 'white' }}>
+            <AlertTriangle size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
+            <h3 style={{ margin: 0, fontSize: '2.5rem' }}>{stats.incidencias}</h3>
+            <p style={{ margin: '5px 0 0', opacity: 0.9 }}>Incidencias Abiertas</p>
+          </div>
+        </div>
+
+        {/* Listados */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+          
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', color: '#0A2342', borderBottom: '2px solid #eee', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} /> Próximas Citas (Agenda)
+            </h3>
+            {proximos.length === 0 ? (
+              <p style={{ color: '#999', fontStyle: 'italic' }}>No hay mantenimientos planificados próximamente.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {proximos.map(m => (
+                  <div key={m.id} style={{ borderLeft: '4px solid #0A2342', paddingLeft: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <strong style={{ color: '#333' }}>{m.Instalaciones?.direccion}</strong>
+                      <span style={{ fontSize: '0.8rem', color: '#666' }}>{new Date(m.fecha_programada).toLocaleDateString()}</span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                      {m.Puertas?.tipo} {m.Puertas?.identificador && `(${m.Puertas.identificador})`} — <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button className="btn-secondary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={() => navigate('/admin/mantenimientos/listado')}>
+              Ver Listado Completo
+            </button>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', color: '#E63329', borderBottom: '2px solid #eee', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={18} /> Incidencias Recientes (Activas)
+            </h3>
+            {incidenciasRecientes.length === 0 ? (
+              <p style={{ color: '#999', fontStyle: 'italic' }}>Todo correcto, no hay averías activas.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {incidenciasRecientes.map(inc => (
+                  <div key={inc.id} style={{ borderLeft: '4px solid #E63329', paddingLeft: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <strong style={{ color: '#333' }}>{inc.Puertas?.Instalaciones?.direccion || 'Desconocida'}</strong>
+                      <span className="pill" style={{ backgroundColor: '#ffe5e5', color: '#E63329', fontSize: '0.7rem' }}>
+                        {inc.estado.toUpperCase()}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                      <strong>{inc.Puertas?.tipo}:</strong> {inc.descripcion}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button className="btn-secondary" style={{ marginTop: '1.5rem', width: '100%' }} onClick={() => navigate('/admin/mantenimientos/incidencias')}>
+              Gestionar Reparaciones
+            </button>
+          </div>
+
+        </div>
+
       </div>
     </div>
   );
