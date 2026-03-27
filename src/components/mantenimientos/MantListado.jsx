@@ -35,7 +35,7 @@ export function MantListado({ user }) {
   const fetchAll = async () => {
     // We bring all maintainances, but filter in JS by the Period selected
     const { data: gData } = await supabase.from('Grupos_Mantenimiento').select('*').order('orden');
-    const { data: tData } = await supabase.from('Usuarios').select('id, nombre_completo').eq('rol', 'Tecnico').eq('activo', true);
+    const { data: tData } = await supabase.from('Usuarios').select('id_usuario, nombre_completo').eq('rol', 'Tecnico').eq('activo', true);
     const { data: mData } = await supabase.from('Mantenimientos').select(`
       *,
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
@@ -266,7 +266,7 @@ export function MantListado({ user }) {
             <span style={{ fontWeight: 'bold' }}>{selectedMants.length} seleccionados</span>
             <select id="tecnico-selector" style={{ padding: '0.4rem', borderRadius: '4px', border: 'none', color: '#333' }} defaultValue="">
               <option value="" disabled>Seleccionar Técnico...</option>
-              {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nombre_completo}</option>)}
+              {tecnicos.map(t => <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>)}
               <option value="unassign" style={{ color: 'red' }}>Quitar Técnico (Desasignar)</option>
             </select>
             <button style={{ padding: '0.4rem 1rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }} onClick={assignSelected}>Aplicar</button>
