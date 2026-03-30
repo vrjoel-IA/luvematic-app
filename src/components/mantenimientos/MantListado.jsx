@@ -151,33 +151,31 @@ export function MantListado({ user }) {
         </div>
 
         {/* Filters Toolbar */}
-        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'white', padding: '0.4rem', borderRadius: '8px', border: '1px solid #ddd' }}>
-            <button className="icon-btn" onClick={() => setListPeriod(p => p.month === 0 ? { month: 11, year: p.year - 1 } : { ...p, month: p.month - 1 })}><ChevronLeft size={20}/></button>
-            <h3 style={{ margin: 0, minWidth: '140px', textAlign: 'center', color: '#0A2342' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
-            <button className="icon-btn" onClick={() => setListPeriod(p => p.month === 11 ? { month: 0, year: p.year + 1 } : { ...p, month: p.month + 1 })}><ChevronRight size={20}/></button>
+        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', padding: '0.3rem 0.5rem', borderRadius: '8px', border: '1px solid #ddd' }}>
+            <button onClick={() => setListPeriod(p => p.month === 0 ? { month: 11, year: p.year - 1 } : { ...p, month: p.month - 1 })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', color: '#0A2342' }}><ChevronLeft size={20}/></button>
+            <h3 style={{ margin: 0, minWidth: '130px', textAlign: 'center', color: '#0A2342', fontSize: '0.95rem' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
+            <button onClick={() => setListPeriod(p => p.month === 11 ? { month: 0, year: p.year + 1 } : { ...p, month: p.month + 1 })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', color: '#0A2342' }}><ChevronRight size={20}/></button>
           </div>
           
-          <button onClick={setHoy} style={{ width: 'auto', padding: '0.6rem 1.2rem', backgroundColor: '#0A2342', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}>
+          <button onClick={setHoy} className="btn-primary" style={{ width: 'auto', padding: '0.5rem 1rem', fontSize: '0.85rem', margin: 0 }}>
             Ir a Hoy
           </button>
           
-          <div style={{ borderLeft: '2px solid #ddd', height: '35px' }}></div>
+          <div style={{ borderLeft: '2px solid #ddd', height: '30px' }}></div>
           
-          <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
-            <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white' }}>
-              <option value="todos">Todas las frecuencias</option>
-              <option value="mensual">Mensual</option>
-              <option value="trimestral">Trimestral</option>
-              <option value="semestral">Semestral</option>
-              <option value="anual">Anual</option>
-            </select>
-            
-            <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white' }}>
-              <option value="todos">Todos los Estados</option>
-              {Object.keys(ESTADO_LABELS).map(k => <option key={k} value={k}>{ESTADO_LABELS[k]}</option>)}
-            </select>
-          </div>
+          <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white', padding: '0.5rem' }}>
+            <option value="todos">Todas las frecuencias</option>
+            <option value="mensual">Mensual</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="semestral">Semestral</option>
+            <option value="anual">Anual</option>
+          </select>
+          
+          <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white', padding: '0.5rem' }}>
+            <option value="todos">Todos los Estados</option>
+            {Object.keys(ESTADO_LABELS).map(k => <option key={k} value={k}>{ESTADO_LABELS[k]}</option>)}
+          </select>
         </div>
 
         {/* Modal Nuevo Grupo */}

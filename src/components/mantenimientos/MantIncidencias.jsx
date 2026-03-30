@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../supabase';
 import { MantSidebar } from './MantViews';
-import { AlertCircle, FileText, CheckCircle, ChevronDown, ChevronRight, MapPin, DoorOpen } from 'lucide-react';
+import { AlertCircle, FileText, CheckCircle, ChevronDown, ChevronRight, MapPin, DoorOpen, RefreshCw } from 'lucide-react';
 
 const ESTADOS = [
   'Detectada',
@@ -18,11 +18,14 @@ export function MantIncidencias({ user }) {
   const [filter, setFilter] = useState('Activas');
   const [tecnicos, setTecnicos] = useState([]);
   const [assignDrafts, setAssignDrafts] = useState({});
+  const scrollRef = useRef(null);
   
   // To keep track of which Installation accordion is open
   const [openInstalaciones, setOpenInstalaciones] = useState({});
 
   const fetchIncidencias = async (silent = false) => {
+    // Save scroll position before update
+    const scrollPos = scrollRef.current ? scrollRef.current.scrollTop : 0;
     try {
       if (!silent) setLoading(true);
       const { data, error } = await supabase
@@ -53,6 +56,10 @@ export function MantIncidencias({ user }) {
       alert('Error cargando incidencias: ' + err.message);
     }
     if (!silent) setLoading(false);
+    // Restore scroll position after state update
+    requestAnimationFrame(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = scrollPos;
+    });
   };
 
   const handleDraftChange = (id, field, val) => {
@@ -96,25 +103,58 @@ export function MantIncidencias({ user }) {
     }
   };
 
+  const reasignarTecnico = async (inc) => {
+    const draft = assignDrafts[inc.id];
+    if (!draft || !draft.tecnico || !draft.fecha) {
+      return alert("Selecciona el nuevo técnico y la fecha.");
+    }
+    try {
+      // 1. Update incidencia with new tech
+      await supabase.from('Incidencias')
+        .update({ id_tecnico_reparacion: draft.tecnico })
+        .eq('id', inc.id);
+
+      // 2. Delete old correctivo(s) for this puerta+incidencia link
+      await supabase.from('Mantenimientos')
+        .delete()
+        .eq('frecuencia', 'correctivo')
+        .eq('id_puerta', inc.id_puerta)
+        .eq('id_tecnico', inc.id_tecnico_reparacion);
+
+      // 3. Create new correctivo for new tech
+      const instalacionId = inc.Mantenimientos?.Instalaciones?.id || inc.Puertas?.id_instalacion;
+      await supabase.from('Mantenimientos').insert({
+        id_instalacion: instalacionId,
+        id_puerta: inc.id_puerta,
+        frecuencia: 'correctivo',
+        estado: 'asignado',
+        id_tecnico: draft.tecnico,
+        fecha_programada: draft.fecha,
+        observaciones: `REPARACIÓN AVERÍA: ${inc.descripcion}`,
+        orden_en_grupo: 99
+      });
+
+      alert("Técnico reasignado correctamente.");
+      setAssignDrafts(prev => { const n = {...prev}; delete n[inc.id]; return n; });
+      fetchIncidencias(true);
+    } catch (e) {
+      alert("Error al reasignar técnico.");
+      console.error(e);
+    }
+  };
+
   useEffect(() => { fetchIncidencias(); }, []);
 
   const updateEstado = async (id, newEstado) => {
+    // Optimistic update to avoid scroll jump
+    setIncidencias(prev => prev.map(inc => inc.id === id ? { ...inc, estado: newEstado } : inc));
     try {
       const { error } = await supabase.from('Incidencias').update({ estado: newEstado }).eq('id', id);
       if (error) throw error;
       fetchIncidencias(true);
     } catch (err) {
       alert("Error actualizando estado.");
-    }
-  };
-
-  const updateTecnico = async (id, id_tecnico) => {
-    try {
-      const { error } = await supabase.from('Incidencias').update({ id_tecnico_reparacion: id_tecnico || null }).eq('id', id);
-      if (error) throw error;
       fetchIncidencias(true);
-    } catch (err) {
-      alert("Error asignando técnico.");
     }
   };
 
@@ -124,7 +164,7 @@ export function MantIncidencias({ user }) {
     try {
       const { error } = await supabase.from('Incidencias').update({ presupuesto: val }).eq('id', id);
       if (error) throw error;
-      fetchIncidencias(true);
+      // No need to refetch for presupuesto onBlur
     } catch (err) {
       alert("Error actualizando presupuesto.");
     }
@@ -172,7 +212,7 @@ export function MantIncidencias({ user }) {
   return (
     <div className="dashboard-layout">
       <MantSidebar user={user} />
-      <div className="main-content">
+      <div className="main-content" ref={scrollRef} style={{ overflowY: 'auto' }}>
         <div className="header">
           <h1>Gestión de Incidencias de Mantenimiento</h1>
         </div>
@@ -198,11 +238,11 @@ export function MantIncidencias({ user }) {
         </div>
 
         {/* Filters */}
-        <div className="filters-bar" style={{ display: 'flex', marginBottom: '1.5rem', background: 'white', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', alignItems: 'center', gap: '10px' }}>
-          <strong style={{ color: '#0A2342' }}>Visualizando:</strong>
+        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.5rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
+          <strong style={{ color: '#0A2342', whiteSpace: 'nowrap' }}>Visualizando:</strong>
           <select 
-            className="input-field" 
-            style={{ width: 'auto', margin: 0, padding: '8px 30px 8px 10px' }}
+            className="form-input" 
+            style={{ flex: 1, minWidth: '200px', background: 'white' }}
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -214,16 +254,18 @@ export function MantIncidencias({ user }) {
               ))}
             </optgroup>
           </select>
-          <style>{`
-            .active-filter { background-color: #0A2342 !important; color: white !important; border-color: #0A2342 !important; }
-            .incidencia-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1rem; overflow: hidden; }
-            .incidencia-body { padding: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap; }
-            .incidencia-col { flex: 1; min-width: 250px; }
-            .state-timeline { display: flex; align-items: center; gap: 5px; margin-top: 1rem; flex-wrap: wrap; }
-            .state-step { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: 0.2s; border: 1px solid #ccc; background: white; color: #666; }
-            .state-step.active { background: #0A2342; border-color: #0A2342; color: white; }
-          `}</style>
         </div>
+
+        <style>{`
+          .incidencia-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1rem; overflow: hidden; }
+          .incidencia-body { padding: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap; }
+          .incidencia-col { flex: 1; min-width: 250px; }
+          .state-timeline { display: flex; align-items: center; gap: 5px; margin-top: 0.5rem; flex-wrap: wrap; }
+          .state-step { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s; border: 1px solid #ccc; background: white; color: #666; }
+          .state-step:hover { background: #e8edff; border-color: #0A2342; }
+          .state-step.active { background: #0A2342; border-color: #0A2342; color: white; }
+          .state-step.passed { border-color: #0A2342; color: #0A2342; }
+        `}</style>
 
         {/* List */}
         {loading ? (
@@ -264,11 +306,14 @@ export function MantIncidencias({ user }) {
                             </h3>
                             
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                              {puerta.incidencias.map(inc => (
+                              {puerta.incidencias.map(inc => {
+                                const isEditing = assignDrafts[inc.id]?.editing;
+                                
+                                return (
                                 <div key={inc.id} className="incidencia-card" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
                                   <div style={{ padding: '0.8rem 1.5rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
                                     <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>Detección: {new Date(inc.created_at).toLocaleDateString()}</span>
-                                    <span className="pill" style={{ backgroundColor: inc.estado === 'Cerrada' ? '#28a745' : '#E63329', color: 'white' }}>{inc.estado}</span>
+                                    <span className="pill" style={{ backgroundColor: inc.estado === 'Cerrada' ? '#28a745' : inc.estado === 'Reparada' ? '#2196F3' : '#E63329', color: 'white' }}>{inc.estado}</span>
                                   </div>
                                   
                                   <div className="incidencia-body" style={{ padding: '1rem 1.5rem' }}>
@@ -300,19 +345,26 @@ export function MantIncidencias({ user }) {
                                       </div>
 
                                       <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#0A2342' }}>Coordinar Reparación (Generar Parte)</label>
+                                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#0A2342' }}>Coordinar Reparación</label>
                                         
-                                        {inc.Usuarios?.nombre_completo ? (
-                                          <div style={{ padding: '0.8rem', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: '4px' }}>
+                                        {inc.Usuarios?.nombre_completo && !isEditing ? (
+                                          <div style={{ padding: '0.8rem', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: '#0d47a1' }}>
-                                              <strong>Técnico encargado:</strong> {inc.Usuarios.nombre_completo}
+                                              <strong>Técnico:</strong> {inc.Usuarios.nombre_completo}
                                             </p>
+                                            <button 
+                                              onClick={() => handleDraftChange(inc.id, 'editing', true)}
+                                              className="btn-secondary" 
+                                              style={{ width: 'auto', padding: '4px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                            >
+                                              <RefreshCw size={12} /> Cambiar
+                                            </button>
                                           </div>
                                         ) : (
-                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0.8rem', background: '#f8f9fa', border: '1px solid #eee', borderRadius: '4px' }}>
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '0.8rem', background: '#f8f9fa', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
                                             <select 
                                               className="form-input" 
-                                              style={{ width: '100%', padding: '0.4rem', fontSize: '0.9rem' }}
+                                              style={{ width: '100%', padding: '0.5rem', fontSize: '0.9rem', background: 'white' }}
                                               value={(assignDrafts[inc.id] && assignDrafts[inc.id].tecnico) || ''}
                                               onChange={(e) => handleDraftChange(inc.id, 'tecnico', e.target.value)}
                                             >
@@ -326,17 +378,26 @@ export function MantIncidencias({ user }) {
                                               <input 
                                                 type="date" 
                                                 className="form-input"
-                                                style={{ flex: 1, padding: '0.4rem', fontSize: '0.9rem' }}
+                                                style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem', background: 'white' }}
                                                 value={(assignDrafts[inc.id] && assignDrafts[inc.id].fecha) || ''}
                                                 onChange={(e) => handleDraftChange(inc.id, 'fecha', e.target.value)}
                                               />
                                               <button 
-                                                onClick={() => crearMantenimientoCorrectivo(inc)}
+                                                onClick={() => inc.Usuarios?.nombre_completo ? reasignarTecnico(inc) : crearMantenimientoCorrectivo(inc)}
                                                 className="btn-primary" 
-                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                                                style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', whiteSpace: 'nowrap', width: 'auto' }}
                                               >
-                                                Asignar
+                                                {inc.Usuarios?.nombre_completo ? 'Reasignar' : 'Asignar'}
                                               </button>
+                                              {isEditing && (
+                                                <button 
+                                                  onClick={() => setAssignDrafts(prev => { const n = {...prev}; delete n[inc.id]; return n; })}
+                                                  className="btn-secondary"
+                                                  style={{ padding: '0.5rem 0.8rem', fontSize: '0.85rem', width: 'auto' }}
+                                                >
+                                                  Cancelar
+                                                </button>
+                                              )}
                                             </div>
                                           </div>
                                         )}
@@ -352,8 +413,7 @@ export function MantIncidencias({ user }) {
                                               <span 
                                                 key={st} 
                                                 onClick={() => updateEstado(inc.id, st)}
-                                                className={`state-step ${isActive ? 'active' : ''}`}
-                                                style={isPassed && !isActive ? { borderColor: '#0A2342', color: '#0A2342' } : {}}
+                                                className={`state-step ${isActive ? 'active' : ''} ${isPassed && !isActive ? 'passed' : ''}`}
                                               >
                                                 {st}
                                               </span>
@@ -364,7 +424,7 @@ export function MantIncidencias({ user }) {
                                     </div>
                                   </div>
                                 </div>
-                              ))}
+                              )})}
                             </div>
                           </div>
                         );
