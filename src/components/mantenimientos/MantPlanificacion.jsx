@@ -4,7 +4,7 @@ import { Calendar, User, MapPin, ChevronLeft, ChevronRight, Layers, Plus, X } fr
 import { supabase } from '../../supabase';
 import { MantSidebar } from './MantViews';
 
-const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63' };
+const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63', correctivo: '#E63329' };
 const ESTADO_COLORS = { programado: '#0A2342', asignado: '#FF9800', en_curso: '#2196F3', completado: '#28a745', cancelado: '#dc3545' };
 const ESTADO_LABELS = { programado: 'Programado', asignado: 'Asignado', en_curso: 'En Curso', completado: 'Completado', cancelado: 'Cancelado' };
 
@@ -208,6 +208,11 @@ export function MantPlanificacion({ user }) {
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {m.Usuarios?.nombre_completo && (
+                              <span style={{ fontSize: '0.8rem', color: '#28a745', fontWeight: 600 }}>
+                                👤 {m.Usuarios.nombre_completo}
+                              </span>
+                            )}
                             <select value={m.id_tecnico || ''} onChange={e => assignTecnico(m.id, e.target.value)} style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.85rem' }}>
                               <option value="">Sin técnico</option>
                               {tecnicos.map(t => <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>)}

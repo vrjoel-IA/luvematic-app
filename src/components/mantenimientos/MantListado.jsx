@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabase';
 import { MantSidebar } from './MantViews';
-import { Calendar, ChevronLeft, ChevronRight, MapPin, DoorOpen, Clock, X, Plus, Edit2 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, MapPin, DoorOpen, Clock, X, Plus, Edit2, User } from 'lucide-react';
 
 const FREQ_COLORS = { mensual: '#2196F3', trimestral: '#FF9800', semestral: '#9C27B0', anual: '#E91E63', correctivo: '#E63329' };
 const ESTADO_COLORS = { programado: '#0A2342', asignado: '#FF9800', en_curso: '#2196F3', completado: '#28a745', cancelado: '#dc3545' };
@@ -39,7 +39,8 @@ export function MantListado({ user }) {
     const { data: mData } = await supabase.from('Mantenimientos').select(`
       *,
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
-      Puertas ( tipo, identificador, accesorios )
+      Puertas ( tipo, identificador, accesorios ),
+      Usuarios:id_tecnico ( nombre_completo )
     `).order('fecha_programada');
     
     setGrupos(gData || []);
@@ -329,8 +330,11 @@ function MantItem({ m, onDragStart, changeDate, onClick, isSelected, onToggleSel
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
           <DoorOpen size={14} /> Puerta: <strong>{m.Puertas?.tipo || 'Sin Especificar'}</strong> {m.Puertas?.identificador && `(${m.Puertas.identificador})`}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
            <Clock size={14} /> Frecuencia: <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+           <User size={14} /> Técnico: <strong style={{ color: m.Usuarios?.nombre_completo ? '#28a745' : '#dc3545' }}>{m.Usuarios?.nombre_completo || 'Sin asignar'}</strong>
         </div>
       </div>
 
@@ -376,6 +380,7 @@ export function MantDetailModal({ m, onClose }) {
             <h4 style={{ margin: '0 0 0.5rem 0', color: '#0A2342' }}>Programación</h4>
             <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Frecuencia:</strong> <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span></div>
             <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Fecha Prevista:</strong> {new Date(m.fecha_programada).toLocaleDateString()}</div>
+            <div style={{ fontSize: '0.9rem', color: '#555', marginTop: '6px' }}><strong>Técnico:</strong> <span style={{ color: m.Usuarios?.nombre_completo ? '#28a745' : '#dc3545', fontWeight: 600 }}>{m.Usuarios?.nombre_completo || 'Sin asignar'}</span></div>
           </div>
         </div>
 

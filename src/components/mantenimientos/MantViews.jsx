@@ -70,7 +70,7 @@ export function MantDashboardAdmin({ user }) {
   const openDetailModal = async (mantId) => {
     // Fetch full detail with accesorios
     const { data } = await supabase.from('Mantenimientos')
-      .select('*, Instalaciones(direccion), Puertas(*)')
+      .select('*, Instalaciones(direccion), Puertas(*), Usuarios:id_tecnico(nombre_completo)')
       .eq('id', mantId)
       .single();
     if (data) {
@@ -84,7 +84,7 @@ export function MantDashboardAdmin({ user }) {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const { data: mData } = await supabase.from('Mantenimientos')
-      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador, accesorios)')
+      .select('id, estado, fecha_programada, frecuencia, id_tecnico, Instalaciones(direccion), Puertas(tipo, identificador, accesorios), Usuarios:id_tecnico(nombre_completo)')
       .gte('fecha_programada', startOfMonth)
       .lte('fecha_programada', endOfMonth)
       .order('fecha_programada', { ascending: true });
@@ -100,7 +100,7 @@ export function MantDashboardAdmin({ user }) {
 
     const todayStr = now.toISOString().split('T')[0];
     const { data: proxData } = await supabase.from('Mantenimientos')
-      .select('id, estado, fecha_programada, frecuencia, Instalaciones(direccion), Puertas(tipo, identificador, accesorios)')
+      .select('id, estado, fecha_programada, frecuencia, id_tecnico, Instalaciones(direccion), Puertas(tipo, identificador, accesorios), Usuarios:id_tecnico(nombre_completo)')
       .in('estado', ['programado', 'asignado', 'en_curso'])
       .gte('fecha_programada', todayStr)
       .order('fecha_programada', { ascending: true })
@@ -182,6 +182,11 @@ export function MantDashboardAdmin({ user }) {
                     <div style={{ fontSize: '0.85rem', color: '#666' }}>
                       {m.Puertas?.tipo} {m.Puertas?.identificador && `(${m.Puertas.identificador})`} — <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span>
                     </div>
+                    {m.Usuarios?.nombre_completo && (
+                      <div style={{ fontSize: '0.8rem', color: '#28a745', fontWeight: 600, marginTop: '2px' }}>
+                        👤 {m.Usuarios.nombre_completo}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -246,6 +251,7 @@ export function MantDashboardAdmin({ user }) {
                     </div>
                     <div style={{ fontSize: '0.9rem', color: '#555' }}>
                       {item.Puertas?.tipo} {item.Puertas?.identificador && `(${item.Puertas.identificador})`}
+                      {item.Usuarios?.nombre_completo && <div style={{ color: '#28a745', fontWeight: 600, fontSize: '0.85rem' }}>👤 {item.Usuarios.nombre_completo}</div>}
                       {item.descripcion && <div><strong style={{ color: '#E63329' }}>Avería:</strong> {item.descripcion}</div>}
                     </div>
                   </div>
