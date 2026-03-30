@@ -111,7 +111,7 @@ export function MantDashboardAdmin({ user }) {
     // INNER join to ensure Mantenimiento still exists
     const { data: iData } = await supabase.from('Incidencias')
       .select('id, estado, descripcion, created_at, id_mantenimiento, Mantenimientos!inner(id), Puertas(tipo, identificador, Instalaciones(direccion))')
-      .not('estado', 'in', '("cerrada","reparada")')
+      .not('estado', 'in', '("Cerrada","Reparada")')
       .order('created_at', { ascending: false });
 
     if (iData) {

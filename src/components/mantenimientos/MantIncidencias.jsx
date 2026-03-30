@@ -37,9 +37,8 @@ export function MantIncidencias({ user }) {
               direccion
             )
           ),
-          ),
           Puertas ( id, tipo, id_instalacion ),
-          Usuarios!id_tecnico_reparacion ( nombre_completo ),
+          Usuarios ( nombre_completo ),
           Checklist_Respuestas ( observacion, url_foto )
         `)
         .order('created_at', { ascending: false });
@@ -51,6 +50,7 @@ export function MantIncidencias({ user }) {
       setTecnicos(techData || []);
     } catch (err) {
       console.error(err);
+      alert('Error cargando incidencias: ' + err.message);
     }
     if (!silent) setLoading(false);
   };
