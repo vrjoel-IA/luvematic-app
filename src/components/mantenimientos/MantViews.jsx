@@ -85,6 +85,7 @@ export function MantDashboardAdmin({ user }) {
 
     const { data: mData } = await supabase.from('Mantenimientos')
       .select('id, estado, fecha_programada, frecuencia, id_tecnico, Instalaciones(direccion), Puertas(tipo, identificador, accesorios), Usuarios:id_tecnico(nombre_completo)')
+      .neq('frecuencia', 'correctivo')
       .gte('fecha_programada', startOfMonth)
       .lte('fecha_programada', endOfMonth)
       .order('fecha_programada', { ascending: true });
@@ -101,6 +102,7 @@ export function MantDashboardAdmin({ user }) {
     const todayStr = now.toISOString().split('T')[0];
     const { data: proxData } = await supabase.from('Mantenimientos')
       .select('id, estado, fecha_programada, frecuencia, id_tecnico, Instalaciones(direccion), Puertas(tipo, identificador, accesorios), Usuarios:id_tecnico(nombre_completo)')
+      .neq('frecuencia', 'correctivo')
       .in('estado', ['programado', 'asignado', 'en_curso'])
       .gte('fecha_programada', todayStr)
       .order('fecha_programada', { ascending: true })

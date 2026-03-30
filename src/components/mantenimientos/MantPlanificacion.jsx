@@ -31,7 +31,7 @@ export function MantPlanificacion({ user }) {
 
   const fetchAll = async () => {
     const [mRes, tRes, gRes] = await Promise.all([
-      supabase.from('Mantenimientos').select('*, Instalaciones(direccion, Clientes_Mant(razon_social)), Usuarios:id_tecnico(nombre_completo)').order('fecha_programada'),
+      supabase.from('Mantenimientos').select('*, Instalaciones(direccion, Clientes_Mant(razon_social)), Usuarios:id_tecnico(nombre_completo)').neq('frecuencia', 'correctivo').order('fecha_programada'),
       supabase.from('Usuarios').select('*').eq('rol', 'Tecnico'),
       supabase.from('Grupos_Mantenimiento').select('*').order('orden'),
     ]);

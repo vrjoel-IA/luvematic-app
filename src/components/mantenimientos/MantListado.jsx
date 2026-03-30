@@ -41,7 +41,7 @@ export function MantListado({ user }) {
       Instalaciones ( direccion, Clientes_Mant(razon_social) ),
       Puertas ( tipo, identificador, accesorios ),
       Usuarios:id_tecnico ( nombre_completo )
-    `).order('fecha_programada');
+    `).neq('frecuencia', 'correctivo').order('fecha_programada');
     
     setGrupos(gData || []);
     setTecnicos(tData || []);
