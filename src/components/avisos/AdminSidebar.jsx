@@ -18,12 +18,12 @@ export function AdminSidebar({ user }) {
         <div style={{ background: 'white', padding: '6px 10px', borderRadius: '4px' }}>
           <img src="/logo.png" style={{ height: '30px', display: 'block' }} alt="LUVEMATIC" />
         </div>
-        <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button type="button" aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={isMenuOpen} aria-controls="sidebar-navigation" className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? '✕' : '☰'}
         </button>
       </div>
 
-      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+      <div id="sidebar-navigation" className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
         <p className="link" onClick={() => handleNav('/admin')} style={isActive('/admin')}>Dashboard</p>
         <p className="link" onClick={() => handleNav('/admin/avisos')} style={isActive('/admin/avisos')}>Avisos</p>
         <p className="link" onClick={() => handleNav('/admin/clientes')} style={isActive('/admin/clientes')}>Clientes</p>

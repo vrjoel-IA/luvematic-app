@@ -119,7 +119,7 @@ export function MantPlanificacion({ user }) {
       <div className="main-content">
         <div className="header">
           <h1>Planificación</h1>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div className="responsive-row" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button onClick={() => setVista('calendario')} className="btn-primary"
               style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.9rem', backgroundColor: vista === 'calendario' ? '#0A2342' : '#6c757d' }}>
               <Calendar size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />Calendario
@@ -140,9 +140,9 @@ export function MantPlanificacion({ user }) {
             {/* Calendar View */}
             <div className="card" style={{ padding: '1.5rem' }}>
               {/* Month navigation */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <button onClick={prevMonth} style={{ background: 'none', border: '1px solid #ddd', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}><ChevronLeft size={18} /></button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <h2 style={{ margin: 0 }}>{mesesNombres[currentMonth]} {currentYear}</h2>
                   <button onClick={() => { const now = new Date(); setCurrentMonth(now.getMonth()); setCurrentYear(now.getFullYear()); setSelectedDay(now.getDate()); }}
                     style={{ padding: '4px 12px', borderRadius: '16px', border: '2px solid #0A2342', backgroundColor: 'white', color: '#0A2342', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}>
@@ -173,7 +173,7 @@ export function MantPlanificacion({ user }) {
                         {day}
                       </div>
                       {items.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
+                        <div className="responsive-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
                           {items.slice(0, 3).map((m, idx) => (
                             <div key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: FREQ_COLORS[m.frecuencia] || '#999' }} title={`${m.frecuencia} - ${m.Instalaciones?.direccion}`} />
                           ))}
@@ -199,15 +199,15 @@ export function MantPlanificacion({ user }) {
                   <div style={{ display: 'grid', gap: '0.5rem' }}>
                     {selectedItems.map(m => (
                       <div key={m.id} className="card" style={{ padding: '0.8rem 1.2rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ fontSize: '0.7rem', padding: '3px 10px', borderRadius: '12px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia], textTransform: 'uppercase' }}>{m.frecuencia}</span>
                             <div>
                               <strong>{m.Instalaciones?.direccion}</strong>
                               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{m.Instalaciones?.Clientes_Mant?.razon_social}</div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {m.Usuarios?.nombre_completo && (
                               <span style={{ fontSize: '0.8rem', color: '#28a745', fontWeight: 600 }}>
                                 👤 {m.Usuarios.nombre_completo}
@@ -230,7 +230,7 @@ export function MantPlanificacion({ user }) {
             )}
 
             {/* Legend */}
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.8rem' }}>
+            <div className="responsive-row" style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.8rem' }}>
               {Object.entries(FREQ_COLORS).map(([f, c]) => (
                 <span key={f} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: c }} /> {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -243,8 +243,8 @@ export function MantPlanificacion({ user }) {
           <>
             {/* Filters */}
             <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px' }}>
+              <div className="responsive-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: "min(200px, 100%)" }}>
                   <label style={{ fontSize: '0.8rem' }}>Técnico</label>
                   <select value={filtroTecnico} onChange={e => setFiltroTecnico(e.target.value)} style={{ padding: '0.4rem', fontSize: '0.85rem' }}>
                     <option value="todos">Todos</option>
@@ -252,7 +252,7 @@ export function MantPlanificacion({ user }) {
                     {tecnicos.map(t => <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>)}
                   </select>
                 </div>
-                <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px' }}>
+                <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: "min(200px, 100%)" }}>
                   <label style={{ fontSize: '0.8rem' }}>Grupo / Zona</label>
                   <select value={filtroGrupo} onChange={e => setFiltroGrupo(e.target.value)} style={{ padding: '0.4rem', fontSize: '0.85rem' }}>
                     <option value="todos">Todos</option>
@@ -280,28 +280,28 @@ export function MantPlanificacion({ user }) {
               <div style={{ display: 'grid', gap: '0.6rem' }}>
                 {pendientes.map(m => (
                   <div key={m.id} className="card" style={{ padding: '0.8rem 1.2rem', borderLeft: m.id_tecnico ? '4px solid #28a745' : '4px solid #dc3545' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <div style={{ flex: 1, minWidth: '200px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ flex: 1, minWidth: "min(200px, 100%)" }}>
+                        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia], textTransform: 'uppercase' }}>{m.frecuencia}</span>
                           <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0A2342' }}>
                             <Calendar size={13} style={{ verticalAlign: 'middle' }} /> {new Date(m.fecha_programada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
                           <MapPin size={14} color="var(--text-muted)" />
                           <span>{m.Instalaciones?.direccion}</span>
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>({m.Instalaciones?.Clientes_Mant?.razon_social})</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className="responsive-row" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <select value={m.id_grupo || ''} onChange={e => assignGrupo(m.id, e.target.value)}
-                          style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.8rem', minWidth: '120px' }}>
+                          style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.8rem', minWidth: "min(120px, 100%)" }}>
                           <option value="">Sin grupo</option>
                           {grupos.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
                         </select>
                         <select value={m.id_tecnico || ''} onChange={e => assignTecnico(m.id, e.target.value)}
-                          style={{ padding: '4px 8px', borderRadius: '4px', border: m.id_tecnico ? '2px solid #28a745' : '2px solid #dc3545', fontSize: '0.8rem', minWidth: '140px', fontWeight: 600 }}>
+                          style={{ padding: '4px 8px', borderRadius: '4px', border: m.id_tecnico ? '2px solid #28a745' : '2px solid #dc3545', fontSize: '0.8rem', minWidth: "min(140px, 100%)", fontWeight: 600 }}>
                           <option value="">⚠ Sin técnico</option>
                           {tecnicos.map(t => <option key={t.id_usuario} value={t.id_usuario}>{t.nombre_completo}</option>)}
                         </select>
@@ -315,7 +315,7 @@ export function MantPlanificacion({ user }) {
         ) : (
           /* Grupos View */
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Agrupa mantenimientos por zonas para organizar rutas.</p>
               <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { resetGrupoForm(); setShowGrupoForm(true); }}>
                 <Plus size={18} /> Nuevo Grupo
@@ -323,16 +323,16 @@ export function MantPlanificacion({ user }) {
             </div>
 
             {showGrupoForm && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                <div className="card" style={{ width: '90%', maxWidth: '450px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                <div className="card modal-panel" style={{ width: '100%', maxWidth: '450px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h2 style={{ margin: 0 }}>{editingGrupoId ? 'Editar Grupo' : 'Nuevo Grupo'}</h2>
                     <button onClick={resetGrupoForm} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
                   </div>
                   <form onSubmit={handleSubmitGrupo}>
                     <div className="input-group"><label>Nombre *</label><input type="text" value={grupoForm.nombre} onChange={e => setGrupoForm({ ...grupoForm, nombre: e.target.value })} required placeholder="Ej: Zona Norte" /></div>
                     <div className="input-group"><label>Descripción</label><textarea rows="2" value={grupoForm.descripcion} onChange={e => setGrupoForm({ ...grupoForm, descripcion: e.target.value })} placeholder="Descripción opcional"></textarea></div>
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                    <div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                       <button type="button" onClick={resetGrupoForm} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
                       <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={grupoLoading}>{grupoLoading ? 'Guardando...' : (editingGrupoId ? 'Guardar' : 'Crear')}</button>
                     </div>
@@ -349,16 +349,16 @@ export function MantPlanificacion({ user }) {
             ) : (
               <div style={{ display: 'grid', gap: '0.8rem' }}>
                 {(() => { const ZONE_COLORS = ['#0A2342','#2196F3','#FF9800','#9C27B0','#E91E63','#28a745','#00BCD4','#795548']; return grupos.map((g, idx) => (
-                  <div key={g.id} className="card" style={{ padding: '1rem 1.2rem', borderLeft: `5px solid ${ZONE_COLORS[idx % ZONE_COLORS.length]}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'box-shadow 0.2s' }}
+                  <div key={g.id} className="card responsive-row" style={{ padding: '1rem 1.2rem', borderLeft: `5px solid ${ZONE_COLORS[idx % ZONE_COLORS.length]}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'box-shadow 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.1)'}
                     onMouseLeave={e => e.currentTarget.style.boxShadow = ''}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <button onClick={() => moveGroup(idx, -1)} disabled={idx === 0} style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 1, padding: 0, fontSize: '0.7rem' }}>▲</button>
                         <button onClick={() => moveGroup(idx, 1)} disabled={idx === grupos.length - 1} style={{ background: 'none', border: 'none', cursor: idx === grupos.length - 1 ? 'default' : 'pointer', opacity: idx === grupos.length - 1 ? 0.3 : 1, padding: 0, fontSize: '0.7rem' }}>▼</button>
                       </div>
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Layers size={18} color={ZONE_COLORS[idx % ZONE_COLORS.length]} />
                           <strong style={{ fontSize: '1.05rem' }}>{g.nombre}</strong>
                           <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: '#f0f4f8', color: '#0A2342', fontWeight: 600 }}>{mantCounts[g.id] || 0} mant.</span>
@@ -366,7 +366,7 @@ export function MantPlanificacion({ user }) {
                         {g.descripcion && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 26px' }}>{g.descripcion}</p>}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={() => handleEditGrupo(g)} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}>Editar</button>
                       <button onClick={() => handleDeleteGrupo(g.id)} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem', backgroundColor: '#dc3545' }}>Eliminar</button>
                     </div>

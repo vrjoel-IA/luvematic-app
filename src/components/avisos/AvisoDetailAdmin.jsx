@@ -107,8 +107,8 @@ export function AvisoDetailAdmin({ user }) {
     <div className="dashboard-layout">
       <AdminSidebar user={user} />
       <div className="main-content">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', justifyContent: 'space-between' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h1 style={{ margin: 0 }}>Detalle de Aviso #{aviso.id_aviso}</h1>
             <span className={`pill ${aviso.estado_aviso.toLowerCase().replace(' ', '-')}`}>{aviso.estado_aviso}</span>
           </div>
@@ -117,7 +117,7 @@ export function AvisoDetailAdmin({ user }) {
         <div className="detail-grid">
           <div>
             <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ margin: 0 }}>Información del Cliente</h3>
                 {aviso.estado_aviso !== 'Cerrado' && !isEditing && <button onClick={handleEditToggle} className="btn-primary" style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}>Editar</button>}
               </div>
@@ -133,8 +133,8 @@ export function AvisoDetailAdmin({ user }) {
               ) : (<><p><strong>Nombre:</strong> {aviso.nombre_cliente}</p><p><strong>Dirección:</strong> {aviso.direccion_cliente}</p><p><strong>Teléfono:</strong> {aviso.telefono_cliente}</p><p><strong>Puerta:</strong> {aviso.tipo_puerta}</p></>)}
             </div>
             <div className="card"><h3>Descripción del Problema</h3>{isEditing ? (<div className="input-group" style={{ marginBottom: 0 }}><textarea rows="4" value={editForm.descripcion_problema} onChange={e => setEditForm({ ...editForm, descripcion_problema: e.target.value })}></textarea></div>) : (<p>{aviso.descripcion_problema}</p>)}</div>
-            {isEditing && (<div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '1.5rem' }}><button onClick={handleEditToggle} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button><button onClick={handleSaveDetails} className="btn-primary" style={{ width: 'auto', backgroundColor: 'var(--accent-green)' }}>Guardar</button></div>)}
-            {fotos.length > 0 && (<div className="card"><h3>Fotos del Trabajo</h3><div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>{fotos.map(f => (<div key={f.id_foto} style={{ border: '1px solid #ccc', padding: '5px', borderRadius: '4px', background: '#f8f9fa' }}><a href={f.url_foto} target="_blank" rel="noreferrer" className="link">Ver Foto</a></div>))}</div></div>)}
+            {isEditing && (<div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '1.5rem' }}><button onClick={handleEditToggle} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button><button onClick={handleSaveDetails} className="btn-primary" style={{ width: 'auto', backgroundColor: 'var(--accent-green)' }}>Guardar</button></div>)}
+            {fotos.length > 0 && (<div className="card"><h3>Fotos del Trabajo</h3><div className="responsive-row" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>{fotos.map(f => (<div key={f.id_foto} style={{ border: '1px solid #ccc', padding: '5px', borderRadius: '4px', background: '#f8f9fa' }}><a href={f.url_foto} target="_blank" rel="noreferrer" className="link">Ver Foto</a></div>))}</div></div>)}
           </div>
           <div>
             <div className="card"><h3>Gestión del Aviso</h3>

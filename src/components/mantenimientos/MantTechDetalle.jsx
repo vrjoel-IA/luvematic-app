@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Camera, MapPin, Play, CheckCircle, RotateCcw, Save, Download, ArrowLeft, WifiOff, Wifi } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { LOGO_BASE64 } from '../../logo';
-import SignatureCanvas from 'react-signature-canvas';
+import { ResponsiveSignature } from '../shared/ResponsiveSignature';
 import { jsPDF } from 'jspdf';
 
 const HIERARCHY = { anual: 4, semestral: 3, trimestral: 2, mensual: 1 };
@@ -449,13 +449,13 @@ export function MantTechDetalle({ user }) {
   return (
     <div className="mobile-view">
       {/* HEADER */}
-      <div className="tech-header" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'white', borderBottom: '2px solid #eee', padding: '1rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
+      <div className="tech-header">
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}><ArrowLeft size={24} color="#0A2342" /></button>
         <div style={{ flex: 1 }}>
           <h2 style={{ margin: 0, fontSize: '1.2rem', color: '#0A2342' }}>{mant.Instalaciones?.Clientes_Mant?.razon_social}</h2>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{mant.Instalaciones?.direccion}</p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+        <div className="tech-status">
           {isOnline ? <span style={{ fontSize: '0.65rem', color: '#28a745', display: 'flex', alignItems: 'center', gap: '2px' }}><Wifi size={10} /> Online</span> 
                     : <span style={{ fontSize: '0.65rem', color: '#dc3545', display: 'flex', alignItems: 'center', gap: '2px' }}><WifiOff size={10} /> Offline</span>}
           <span style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '12px', fontWeight: 800, color: 'white', backgroundColor: HIERARCHY[mant.frecuencia] ? '#0A2342' : '#999', textTransform: 'uppercase' }}>{mant.frecuencia}</span>
@@ -472,7 +472,7 @@ export function MantTechDetalle({ user }) {
               .btn-navegar:hover, .btn-navegar:active { border-color: #0A2342 !important; color: #0A2342 !important; background-color: #eaf1f8 !important; }
             `}</style>
           </div>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
+          <div className="responsive-row" style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
           {step === 5 && isOnline && (
             <button onClick={generatePDF} className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '8px' }}>
               <Download size={18} /> PDF
@@ -499,7 +499,7 @@ export function MantTechDetalle({ user }) {
         {/* STEP 2, 3, 4: WIZARD */}
         {step >= 2 && step <= 4 && (
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', gap: '5px', marginBottom: '1.5rem' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '5px', marginBottom: '1.5rem' }}>
               {[2,3,4].map(s => <div key={s} style={{ flex: 1, height: '6px', borderRadius: '3px', backgroundColor: step >= s ? '#0A2342' : '#ddd' }} />)}
             </div>
 
@@ -513,7 +513,7 @@ export function MantTechDetalle({ user }) {
                    return (
                      <div key={p.id} className="card" style={{ padding: '1rem', marginBottom: '1rem', borderLeft: respuestas[p.id]?.respuesta ? `4px solid ${respuestas[p.id].respuesta === 'OK' ? '#28a745' : respuestas[p.id].respuesta === 'Mal estado' ? '#dc3545' : '#6c757d'}` : '4px solid #ddd' }}>
                         <p style={{ fontWeight: 600, marginTop: 0, marginBottom: '0.8rem' }}>{p.descripcion}</p>
-                        <div style={{ display: 'flex', gap: '5px', marginBottom: isMal ? '1rem' : 0 }}>
+                        <div className="responsive-row" style={{ display: 'flex', gap: '5px', marginBottom: isMal ? '1rem' : 0 }}>
                           {['OK', 'Mal estado', 'N/A'].map(opt => (
                             <button key={opt} onClick={() => handleRespuesta(p.id, 'respuesta', opt)}
                               style={{ flex: 1, padding: '0.6rem', border: '1px solid #ccc', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, 
@@ -536,7 +536,7 @@ export function MantTechDetalle({ user }) {
                         )}
                         
                         {reqPhoto && (
-                          <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div className="responsive-row" style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.5rem 1rem', backgroundColor: '#f0f4f8', border: '1px dashed #0A2342', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
                               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleChecklistUpload(p.id, e.target.files[0])} />
                               <Camera size={16} color="#0A2342" /> {respuestas[p.id]?.foto_url ? 'Cambiar Foto' : (p.foto_obligatoria ? 'Adjuntar Foto (Obligatorio)' : 'Adjuntar Foto (Opcional)')}
@@ -563,9 +563,9 @@ export function MantTechDetalle({ user }) {
                     placeholder="Ej: Se requiere cambiar próximamente el rodamiento superior..."
                     style={{ flex: 1, resize: 'none' }}
                   />
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
-                    <button onClick={() => setStep(2)} className="btn-secondary" style={{ flex: 1 }}>Atrás</button>
-                    <button onClick={() => setStep(4)} className="btn-primary" style={{ flex: 1 }}>Continuar</button>
+                  <div className="responsive-row form-actions" style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                    <button onClick={() => setStep(2)} className="btn-secondary">Atrás</button>
+                    <button onClick={() => setStep(4)} className="btn-primary">Continuar</button>
                   </div>
                 </div>
              )}
@@ -592,7 +592,7 @@ export function MantTechDetalle({ user }) {
                       
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.3rem' }}>Firma</label>
                       <div style={{ border: '2px solid #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9', marginBottom: '0.5rem' }}>
-                        <SignatureCanvas ref={sigCanvas} penColor="blue" canvasProps={{ width: window.innerWidth > 400 ? 300 : 250, height: 150, className: 'sigCanvas' }} />
+                        <ResponsiveSignature signatureRef={sigCanvas} />
                       </div>
                       <button onClick={() => sigCanvas.current.clear()} style={{ background: 'none', border: 'none', color: '#E63329', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <RotateCcw size={14} /> Borrar Firma
@@ -600,9 +600,9 @@ export function MantTechDetalle({ user }) {
                     </div>
                  )}
 
-                 <div style={{ display: 'flex', gap: '10px' }}>
-                   <button onClick={() => setStep(3)} className="btn-secondary" style={{ flex: 1 }}>Atrás</button>
-                   <button onClick={completarVisita} disabled={syncing} className="btn-primary" style={{ flex: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', backgroundColor: '#28a745', borderColor: '#28a745' }}>
+                 <div className="responsive-row form-actions" style={{ display: 'flex', gap: '10px' }}>
+                   <button onClick={() => setStep(3)} className="btn-secondary">Atrás</button>
+                   <button onClick={completarVisita} disabled={syncing} className="btn-primary" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', backgroundColor: '#28a745', borderColor: '#28a745' }}>
                      {syncing ? 'Guardando...' : <><CheckCircle size={20} /> COMPLETAR Y GUARDAR</>}
                    </button>
                  </div>

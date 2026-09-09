@@ -69,7 +69,7 @@ export function MantClienteDetalle({ user }) {
                 {cliente.cif && `CIF: ${cliente.cif} · `}{cliente.contacto_nombre && `${cliente.contacto_nombre} · `}{cliente.contacto_telefono}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '8px' }}>
               <button className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#FF9800' }} onClick={() => navigate(`/admin/mantenimientos/contratos/${id}`)}>
                 <FileText size={18} /> Contratos
               </button>
@@ -88,20 +88,20 @@ export function MantClienteDetalle({ user }) {
 
         {/* Modal Form */}
         {showForm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card" style={{ width: '90%', maxWidth: '550px', maxHeight: '90vh', overflow: 'auto', position: 'relative' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="card modal-panel" style={{ width: '100%', maxWidth: '550px', overflow: 'auto', position: 'relative' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ margin: 0 }}>{editingId ? 'Editar Instalación' : 'Nueva Instalación'}</h2>
                 <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="input-group"><label>Dirección *</label><input type="text" value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} required placeholder="Ej: Calle Mayor 15, Nave 3" /></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid responsive-grid--2" style={{ display: 'grid', gap: '1rem' }}>
                   <div className="input-group"><label>Contacto Local</label><input type="text" value={form.contacto_local} onChange={e => setForm({ ...form, contacto_local: e.target.value })} placeholder="Nombre del responsable" /></div>
                   <div className="input-group"><label>Teléfono Local</label><input type="tel" value={form.telefono_local} onChange={e => setForm({ ...form, telefono_local: e.target.value })} /></div>
                 </div>
                 <div className="input-group"><label>Notas de Acceso</label><textarea rows="3" value={form.notas_acceso} onChange={e => setForm({ ...form, notas_acceso: e.target.value })} placeholder="Ej: Preguntar por portería, código acceso 1234..."></textarea></div>
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                   <button type="button" onClick={resetForm} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
                   <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={loading}>{loading ? 'Guardando...' : (editingId ? 'Guardar' : 'Crear Instalación')}</button>
                 </div>
@@ -123,20 +123,20 @@ export function MantClienteDetalle({ user }) {
                 onClick={() => navigate(`/admin/mantenimientos/instalacion/${inst.id}`)}
                 onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(10,35,66,0.15)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                 onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.4rem' }}>
+                    <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.4rem' }}>
                       <MapPin size={20} color="var(--primary-color)" />
                       <strong style={{ fontSize: '1.05rem' }}>{inst.direccion}</strong>
                     </div>
-                    <div style={{ display: 'flex', gap: '2rem', fontSize: '0.85rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                    <div className="responsive-row" style={{ display: 'flex', gap: '2rem', fontSize: '0.85rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                       {inst.contacto_local && <span>👤 {inst.contacto_local}</span>}
                       {inst.telefono_local && <span>📞 {inst.telefono_local}</span>}
                       <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}><DoorOpen size={14} style={{ verticalAlign: 'middle' }} /> {inst.total_puertas} puerta{inst.total_puertas !== 1 ? 's' : ''}</span>
                     </div>
                     {inst.notas_acceso && <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.4rem', fontStyle: 'italic' }}>📝 {inst.notas_acceso}</p>}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button onClick={(e) => { e.stopPropagation(); handleEdit(inst); }} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem' }}>Editar</button>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(inst.id); }} className="btn-primary" style={{ width: 'auto', padding: '0.3rem 0.7rem', fontSize: '0.85rem', backgroundColor: '#dc3545' }}>Eliminar</button>
                     <ChevronRight size={20} color="#999" />

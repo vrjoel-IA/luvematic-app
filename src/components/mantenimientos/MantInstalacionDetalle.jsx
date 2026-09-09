@@ -156,7 +156,7 @@ export function MantInstalacionDetalle({ user }) {
     <div className="dashboard-layout">
       <MantSidebar user={user} />
       <div className="main-content">
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+        <div className="responsive-row" style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
           <span className="link" onClick={() => navigate('/admin/mantenimientos/clientes')} style={{ cursor: 'pointer', color: 'var(--primary-color)' }}>Sedes e Instalaciones</span>
           <span>›</span>
           <span style={{ color: '#0A2342', fontWeight: 'bold' }}>{instalacion.direccion}</span>
@@ -176,16 +176,16 @@ export function MantInstalacionDetalle({ user }) {
 
         {/* Modal Form */}
         {showForm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card" style={{ width: '90%', maxWidth: '700px', maxHeight: '90vh', overflow: 'auto', padding: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '2px solid #eee', paddingBottom: '1rem' }}>
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="card modal-panel" style={{ width: '100%', maxWidth: '700px', overflow: 'auto', }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '2px solid #eee', paddingBottom: '1rem' }}>
                 <h2 style={{ margin: 0, color: '#0A2342' }}>{editingId ? 'Editar Puerta y Contrato' : 'Nueva Puerta y Contrato'}</h2>
                 <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
               </div>
               
               <form onSubmit={handleSubmit}>
                 <h3 style={{ color: '#0A2342', borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>1. Configuración de la Puerta</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                <div className="responsive-grid responsive-grid--3" style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
                   <div className="input-group"><label>Tipo de Puerta *</label>
                     <select value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })}>
                       {TIPOS_PUERTA.map(t => <option key={t} value={t}>{t}</option>)}
@@ -201,7 +201,7 @@ export function MantInstalacionDetalle({ user }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid responsive-grid--3" style={{ display: 'grid', gap: '1rem' }}>
                   <div className="input-group"><label>Marca</label><input type="text" value={form.marca} onChange={e => setForm({ ...form, marca: e.target.value })} placeholder="Ej: Hörmann" /></div>
                   <div className="input-group"><label>Modelo</label><input type="text" value={form.modelo} onChange={e => setForm({ ...form, modelo: e.target.value })} placeholder="Ej: SPU F42" /></div>
                   <div className="input-group"><label>Nº Serie</label><input type="text" value={form.numero_serie} onChange={e => setForm({ ...form, numero_serie: e.target.value })} /></div>
@@ -209,13 +209,13 @@ export function MantInstalacionDetalle({ user }) {
 
                 {/* Accesorios Section */}
                 <div style={{ marginBottom: '2rem', padding: '1rem', background: '#f5f7fa', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <label style={{ fontWeight: 600, color: '#0A2342', margin: 0 }}>Accesorios Equipados</label>
                     <button type="button" onClick={() => setShowAccesoriosModal(true)} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', width: 'auto' }}>+ Añadir Accesorio</button>
                   </div>
                   
                   {form.accesorios.length === 0 ? <p style={{ fontSize: '0.85rem', color: '#666', margin: 0 }}>No hay accesorios definidos.</p> : (
-                    <table style={{ width: '100%', fontSize: '0.85rem' }}>
+                    <div className="table-responsive" tabIndex={0} role="region" aria-label="Accesorios"><table style={{ width: '100%', fontSize: '0.85rem' }}>
                       <tbody>
                         {form.accesorios.map((a, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid #e0e0e0' }}>
@@ -228,13 +228,13 @@ export function MantInstalacionDetalle({ user }) {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   )}
                 </div>
 
                 <h3 style={{ color: '#0A2342', borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>2. Contrato y Calendario de Mantenimiento</h3>
                 <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>* Al rellenar estos datos, el sistema generará automáticamente las visitas pre-establecidas.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid responsive-grid--2" style={{ display: 'grid', gap: '1rem' }}>
                   <div className="input-group"><label>Frecuencia de Revisión *</label>
                     <select value={form.frecuencia_mant} onChange={e => setForm({ ...form, frecuencia_mant: e.target.value })}>
                       {FRECUENCIAS.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
@@ -248,13 +248,13 @@ export function MantInstalacionDetalle({ user }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid responsive-grid--3" style={{ display: 'grid', gap: '1rem' }}>
                   <div className="input-group"><label>Inicio Contrato</label><input type="date" value={form.inicio_contrato} onChange={e => setForm({ ...form, inicio_contrato: e.target.value })} /></div>
                   <div className="input-group"><label>Fin Contrato / Renovación</label><input type="date" value={form.fin_contrato} onChange={e => setForm({ ...form, fin_contrato: e.target.value })} required /></div>
                   <div className="input-group"><label>1º Mantenimiento (A partir de)</label><input type="date" value={form.primer_mantenimiento} onChange={e => setForm({ ...form, primer_mantenimiento: e.target.value })} required /></div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
                   <button type="button" onClick={resetForm} className="btn-secondary" style={{ width: 'auto' }}>Cancelar</button>
                   <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={loading}>{loading ? 'Guardando...' : (editingId ? 'Actualizar Puerta' : 'Crear y Generar Mantenimientos')}</button>
                 </div>
@@ -265,8 +265,8 @@ export function MantInstalacionDetalle({ user }) {
 
         {/* Accesorios mini-modal */}
         {showAccesoriosModal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-             <div className="card" style={{ width: '350px' }}>
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+             <div className="card modal-panel" style={{ width: '100%' , maxWidth: '350px' }}>
                 <h3 style={{ margin: '0 0 1rem 0' }}>Nuevo Accesorio</h3>
                 <div className="input-group"><label>Elemento</label>
                   <input type="text" placeholder="Ej: Fotocélula, Banda, Radar..." value={tempAcceso.elemento} onChange={e=>setTempAcceso({...tempAcceso, elemento: e.target.value})} />
@@ -277,7 +277,7 @@ export function MantInstalacionDetalle({ user }) {
                 <div className="input-group"><label>Modelo</label>
                   <input type="text" value={tempAcceso.modelo} onChange={e=>setTempAcceso({...tempAcceso, modelo: e.target.value})} />
                 </div>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '10px', marginTop: '1rem' }}>
                   <button type="button" onClick={()=>setShowAccesoriosModal(false)} className="btn-secondary">Volver</button>
                   <button type="button" onClick={addAccesorio} className="btn-primary">Añadir</button>
                 </div>
@@ -292,7 +292,7 @@ export function MantInstalacionDetalle({ user }) {
             <p>No hay puertas registradas. ¡Instala la primera para generar su mantenimiento!</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: '1rem' }}>
             {puertas.map((p, idx) => {
               const endsSoon = p.fin_contrato && (new Date(p.fin_contrato) - new Date()) / (1000 * 60 * 60 * 24) < 30;
               return (
@@ -303,8 +303,8 @@ export function MantInstalacionDetalle({ user }) {
                   </div>
                 )}
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem', paddingTop: endsSoon ? '10px' : 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem', paddingTop: endsSoon ? '10px' : 0 }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <DoorOpen size={24} color="#0A2342" />
                     <div>
                       <strong style={{ fontSize: '1.2rem', color: '#0A2342' }}>{p.tipo}</strong>
@@ -322,21 +322,21 @@ export function MantInstalacionDetalle({ user }) {
                 </div>
 
                 <div style={{ fontSize: '0.85rem', color: '#0A2342', borderTop: '1px dashed #ccc', paddingTop: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span><strong>Frecuencia:</strong></span>
                     <span style={{ textTransform: 'capitalize' }}>{p.frecuencia_mant}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span><strong>Grupo:</strong></span>
                     <span>{p.Grupos_Mantenimiento?.nombre || <span style={{ color: '#E63329', fontStyle: 'italic' }}>Sin Asignar</span>}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span><strong>Vigencia:</strong></span>
                     <span>{new Date(p.fin_contrato).toLocaleDateString()}</span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', marginTop: '1.2rem', justifyContent: 'flex-end' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '8px', marginTop: '1.2rem', justifyContent: 'flex-end' }}>
                   <button onClick={() => handleEdit(p)} className="btn-secondary" style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>Ajustar / Editar</button>
                   <button onClick={() => handleDelete(p.id)} className="btn-primary" style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.8rem', backgroundColor: '#dc3545' }}>Borrar</button>
                 </div>

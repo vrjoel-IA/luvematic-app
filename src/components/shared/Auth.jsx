@@ -123,22 +123,22 @@ export function ModuleSelection({ user }) {
 
   return (
     <div className="auth-container">
-      <div className="login-card" style={{ maxWidth: '800px', width: '90%', padding: '3rem 2rem' }}>
+      <div className="login-card module-selection">
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <img src="/logo.png" alt="LUVEMATIC" className="logo" style={{ height: '60px', marginBottom: '1rem' }} />
           <h2 style={{ color: 'var(--text-muted)' }}>Selecciona un Módulo</h2>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: '2rem' }}>
           <div onClick={handleAvisos} className="module-card">
             <div className="icon-container"><Wrench size={48} /></div>
-            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'inherit' }}>AVISOS</h2>
+            <h2 style={{ margin: 0, color: 'inherit' }}>AVISOS</h2>
             <p style={{ marginTop: '1rem', opacity: 0.8, color: 'var(--text-muted)' }}>Gestión de averías e incidencias</p>
           </div>
 
           <div onClick={handleMantenimientos} className="module-card">
             <div className="icon-container"><ClipboardList size={48} /></div>
-            <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'inherit' }}>MANTENIMIENTOS</h2>
+            <h2 style={{ margin: 0, color: 'inherit' }}>MANTENIMIENTOS</h2>
             <p style={{ marginTop: '1rem', opacity: 0.8, color: 'var(--text-muted)' }}>Revisiones y preventivos</p>
           </div>
         </div>

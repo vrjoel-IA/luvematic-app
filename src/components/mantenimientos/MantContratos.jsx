@@ -165,16 +165,16 @@ export function MantContratos({ user }) {
 
         {/* Modal Form */}
         {showForm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card" style={{ width: '90%', maxWidth: '550px', maxHeight: '90vh', overflow: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="card modal-panel" style={{ width: '100%', maxWidth: '550px', overflow: 'auto' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ margin: 0 }}>{editingId ? 'Editar Contrato' : 'Nuevo Contrato'}</h2>
                 <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="input-group">
                   <label>Frecuencias de Mantenimiento *</label>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <div className="responsive-row" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     {FRECUENCIAS.map(f => (
                       <button key={f.value} type="button" onClick={() => toggleFreq(f.value)}
                         style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: '2px solid ' + FREQ_COLORS[f.value], cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
@@ -193,15 +193,15 @@ export function MantContratos({ user }) {
                     <option value="fecha_contrato">Desde Fecha del Contrato</option>
                   </select>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid responsive-grid--2" style={{ display: 'grid', gap: '1rem' }}>
                   <div className="input-group"><label>Fecha Inicio *</label><input type="date" value={form.fecha_inicio} onChange={e => setForm({ ...form, fecha_inicio: e.target.value })} required /></div>
                   <div className="input-group"><label>Fecha Renovación</label><input type="date" value={form.fecha_renovacion} onChange={e => setForm({ ...form, fecha_renovacion: e.target.value })} /></div>
                 </div>
-                <div className="input-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="input-group responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <input type="checkbox" id="activo" checked={form.activo} onChange={e => setForm({ ...form, activo: e.target.checked })} />
                   <label htmlFor="activo" style={{ margin: 0 }}>Contrato activo</label>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                   <button type="button" onClick={resetForm} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
                   <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={loading}>{loading ? 'Guardando...' : (editingId ? 'Guardar' : 'Crear Contrato')}</button>
                 </div>
@@ -220,16 +220,16 @@ export function MantContratos({ user }) {
           <div style={{ display: 'grid', gap: '1rem' }}>
             {contratos.map(c => (
               <div key={c.id} className="card" style={{ padding: '1.5rem', borderLeft: c.activo ? '4px solid #28a745' : '4px solid #ccc' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
+                    <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
                       <FileText size={20} color="var(--primary-color)" />
                       <strong>Contrato</strong>
                       <span style={{ fontSize: '0.8rem', padding: '2px 10px', borderRadius: '12px', fontWeight: 600, color: 'white', backgroundColor: c.activo ? '#28a745' : '#999' }}>
                         {c.activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                    <div className="responsive-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                       {(c.frecuencias || []).map(f => (
                         <span key={f} style={{ fontSize: '0.8rem', padding: '3px 12px', borderRadius: '12px', fontWeight: 600, color: 'white', backgroundColor: FREQ_COLORS[f] || '#999' }}>
                           {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -242,7 +242,7 @@ export function MantContratos({ user }) {
                       <> · Modo: {c.modo_generacion === 'año_natural' ? 'Año Natural' : 'Fecha Contrato'}</>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div className="responsive-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button onClick={() => generarMantenimientos(c)} className="btn-primary" disabled={generating === c.id}
                       style={{ width: 'auto', padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#28a745' }}>
                       <Zap size={16} /> {generating === c.id ? 'Generando...' : 'Generar Mantenimientos'}

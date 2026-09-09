@@ -31,22 +31,22 @@ export function TechDashboard({ user }) {
 
   return (
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}><ArrowLeft size={16} /> Módulos</button>
           <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="btn-danger" style={{ width: 'auto' }}>Salir</button>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>Tareas</h2>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
             <button onClick={() => setViewAll(false)} className="btn-primary" style={{ width: 'auto', padding: '0.5rem', opacity: viewAll ? 0.5 : 1 }}>Mis Tareas</button>
             <button onClick={() => setViewAll(true)} className="btn-primary" style={{ width: 'auto', padding: '0.5rem', opacity: !viewAll ? 0.5 : 1 }}>Ver Todas</button>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => setStatusFilter('Activos')} className="btn-primary" style={{ width: 'auto', padding: '0.4rem', fontSize: '0.8rem', backgroundColor: statusFilter === 'Activos' ? '#0A2342' : '#6c757d' }}>Solo Activos</button>
           <button onClick={() => setStatusFilter('Cerrados')} className="btn-primary" style={{ width: 'auto', padding: '0.4rem', fontSize: '0.8rem', backgroundColor: statusFilter === 'Cerrados' ? '#0A2342' : '#6c757d' }}>Solo Cerrados</button>
         </div>
@@ -54,7 +54,7 @@ export function TechDashboard({ user }) {
       {filtered.length === 0 ? <p>No hay avisos disponibles para los filtros seleccionados.</p> : null}
       {filtered.map(a => (
         <div key={a.id_aviso} className="card" onClick={() => navigate(`/tecnico/aviso/${a.id_aviso}`, { state: { aviso: a } })} style={{ cursor: 'pointer' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <strong>#{a.id_aviso} - {a.nombre_cliente}</strong>
             <span className={`pill ${a.estado_aviso.toLowerCase().replace(' ', '-')}`}>{a.estado_aviso}</span>
           </div>
@@ -105,7 +105,7 @@ export function TechAvisoDetail() {
   return (
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
       <button onClick={() => navigate('/tecnico')} style={{ marginBottom: '1rem', width: 'auto' }} className="btn-primary">← Volver a Tareas</button>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
         <h1 style={{ margin: 0 }}>Aviso #{aviso.id_aviso}</h1>
         <span className={`pill ${aviso.estado_aviso.toLowerCase().replace(' ', '-')}`}>{aviso.estado_aviso}</span>
       </div>

@@ -30,7 +30,7 @@ export function AdminProductividad({ user }) {
       <AdminSidebar user={user} />
       <div className="main-content">
         <div className="header"><h1>Rendimiento de Técnicos (Avisos Cerrados)</h1></div>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>Fecha de Resolución</th><th>Técnico</th><th>Avisos Cerrados</th></tr></thead>
             <tbody>
@@ -77,7 +77,7 @@ export function AdminUsuarios({ user }) {
           Aquí puedes ver a todas las personas registradas y cambiarles su rol.
           Asigna el rol de <strong>Técnico</strong> a los trabajadores.
         </p>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol Actual</th><th>Acciones</th></tr></thead>
             <tbody>

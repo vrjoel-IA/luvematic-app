@@ -58,7 +58,7 @@ export function AdminDashboard({ user }) {
           <div className={`kpi-card clickable ${activeFilter === 'Cerrados' ? 'active' : ''}`} onClick={() => handleFilterClick('Cerrados')}><h3>{kpis.cerrados}</h3><p style={{ color: 'var(--text-muted)' }}>Cerrados</p></div>
         </div>
         <h3>{activeFilter ? `Avisos Registrados - Filtro: ${activeFilter}` : 'Actividad Reciente de Avisos'}</h3>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>ID</th><th>Cliente</th><th>Dirección</th><th>Técnico</th><th>Estado</th><th>Acción</th></tr></thead>
             <tbody>
@@ -136,16 +136,16 @@ export function AdminAvisos({ user }) {
           <h1>Directorio de Avisos</h1>
           <button className="btn-primary" style={{ width: 'auto', backgroundColor: '#dc3545' }} onClick={exportMonthlyPDF}>Exportar Avisos del Mes a PDF</button>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <input type="text" placeholder="Buscar por cliente, dirección o ID..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }} />
+        <div className="responsive-row" style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'space-between' }}>
+          <div className="responsive-row" style={{ display: 'flex', gap: '1rem' }}>
+            <input type="text" placeholder="Buscar por cliente, dirección o ID..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', width: 'min(300px, 100%)', borderRadius: '4px', border: '1px solid #ccc' }} />
             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}>
               <option value="Todos">Todos los Estados</option><option value="Abiertos/Pendientes">Abiertos y Pendientes</option><option value="Cerrados">Cerrados</option>
             </select>
           </div>
           <button className="btn-primary" style={{ width: 'auto' }} onClick={() => navigate('/admin/create-aviso')}>+ Crear Aviso</button>
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>ID</th><th>Cliente</th><th>Dirección</th><th>Técnico</th><th>Estado</th><th>Acción</th></tr></thead>
             <tbody>
@@ -219,9 +219,9 @@ export function AdminClientes({ user }) {
       <div className="main-content">
         <div className="header">
           <h1>Directorio de Clientes</h1>
-          <input type="text" placeholder="Buscar por cliente o dirección..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }} />
+          <input type="text" placeholder="Buscar por cliente o dirección..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '0.5rem', width: 'min(300px, 100%)', borderRadius: '4px', border: '1px solid #ccc' }} />
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>Cliente</th><th>Dirección</th><th>Teléfono</th><th>Total Avisos</th><th>Acción</th></tr></thead>
             <tbody>
@@ -262,7 +262,7 @@ export function ClienteAvisos({ user }) {
           <div><h1>Avisos de {cliente.nombre_cliente}</h1><p style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>{cliente.direccion_cliente} &mdash; Tel: {cliente.telefono_cliente || 'N/A'}</p></div>
           <button className="btn-primary" style={{ width: 'auto' }} onClick={() => navigate('/admin/clientes')}>&larr; Volver a Clientes</button>
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive" tabIndex={0} role="region" aria-label="Tabla de datos, desplazamiento horizontal">
           <table className="data-table">
             <thead><tr><th>ID</th><th>Fecha</th><th>Tipo Puerta</th><th>Descripción</th><th>Técnico</th><th>Estado</th></tr></thead>
             <tbody>

@@ -238,11 +238,11 @@ export function MantIncidencias({ user }) {
         </div>
 
         {/* Filters */}
-        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.5rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
+        <div className="card responsive-row" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.5rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
           <strong style={{ color: '#0A2342', whiteSpace: 'nowrap' }}>Visualizando:</strong>
           <select 
             className="form-input" 
-            style={{ flex: 1, minWidth: '200px', background: 'white' }}
+            style={{ flex: 1, minWidth: "min(200px, 100%)", background: 'white' }}
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -259,7 +259,7 @@ export function MantIncidencias({ user }) {
         <style>{`
           .incidencia-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 1rem; overflow: hidden; }
           .incidencia-body { padding: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap; }
-          .incidencia-col { flex: 1; min-width: 250px; }
+          .incidencia-col { flex: 1; min-width: min(250px, 100%); }
           .state-timeline { display: flex; align-items: center; gap: 5px; margin-top: 0.5rem; flex-wrap: wrap; }
           .state-step { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s; border: 1px solid #ccc; background: white; color: #666; }
           .state-step:hover { background: #e8edff; border-color: #0A2342; }
@@ -284,11 +284,11 @@ export function MantIncidencias({ user }) {
 
               return (
                 <div key={instId} className="card" style={{ padding: 0, marginBottom: '1.5rem', overflow: 'hidden' }}>
-                  <div 
+                  <div className="responsive-row"
                     onClick={() => toggleInstalacion(instId)}
                     style={{ background: '#f8f9fa', padding: '1rem 1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: isInstOpen ? '1px solid #eee' : 'none' }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                        <MapPin size={20} color="#0A2342" />
                        <h2 style={{ margin: 0, color: '#0A2342', fontSize: '1.2rem' }}>{instalacion.direccion}</h2>
                     </div>
@@ -311,7 +311,7 @@ export function MantIncidencias({ user }) {
                                 
                                 return (
                                 <div key={inc.id} className="incidencia-card" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                                  <div style={{ padding: '0.8rem 1.5rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
+                                  <div className="responsive-row" style={{ padding: '0.8rem 1.5rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
                                     <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>Detección: {new Date(inc.created_at).toLocaleDateString()}</span>
                                     <span className="pill" style={{ backgroundColor: inc.estado === 'Cerrada' ? '#28a745' : inc.estado === 'Reparada' ? '#2196F3' : '#E63329', color: 'white' }}>{inc.estado}</span>
                                   </div>
@@ -348,7 +348,7 @@ export function MantIncidencias({ user }) {
                                         <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#0A2342' }}>Coordinar Reparación</label>
                                         
                                         {inc.Usuarios?.nombre_completo && !isEditing ? (
-                                          <div style={{ padding: '0.8rem', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                                          <div className="responsive-row" style={{ padding: '0.8rem', background: '#e3f2fd', border: '1px solid #bbdefb', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: '#0d47a1' }}>
                                               <strong>Técnico:</strong> {inc.Usuarios.nombre_completo}
                                             </p>
@@ -374,7 +374,7 @@ export function MantIncidencias({ user }) {
                                               ))}
                                             </select>
                                             
-                                            <div style={{ display: 'flex', gap: '6px' }}>
+                                            <div className="responsive-row" style={{ display: 'flex', gap: '6px' }}>
                                               <input 
                                                 type="date" 
                                                 className="form-input"

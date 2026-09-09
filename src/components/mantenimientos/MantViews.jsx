@@ -20,12 +20,12 @@ export function MantSidebar({ user }) {
         <div style={{ background: 'white', padding: '6px 10px', borderRadius: '4px' }}>
           <img src="/logo.png" style={{ height: '30px', display: 'block' }} alt="LUVEMATIC" />
         </div>
-        <button className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button type="button" aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={isMenuOpen} aria-controls="sidebar-navigation" className="hamburger-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? '✕' : '☰'}
         </button>
       </div>
 
-      <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+      <div id="sidebar-navigation" className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos')} style={isActive('/admin/mantenimientos')}>Dashboard</p>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos/listado')} style={isActive('/admin/mantenimientos/listado')}>Mantenimientos</p>
         <p className="link" onClick={() => handleNav('/admin/mantenimientos/clientes')} style={isActive('/admin/mantenimientos/clientes')}>Clientes</p>
@@ -138,7 +138,7 @@ export function MantDashboardAdmin({ user }) {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div className="card" onClick={() => openListModal('Visitas Pendientes (Mes)', 'programados')} style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, #0A2342 0%, #1a365d 100%)', color: 'white', cursor: 'pointer', transition: 'transform 0.2s', transform: 'scale(1)' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <Calendar size={32} style={{ opacity: 0.8, marginBottom: '10px' }} />
             <h3 style={{ margin: 0, fontSize: '2.5rem', color: 'white' }}>{stats.programados.length}</h3>
@@ -165,7 +165,7 @@ export function MantDashboardAdmin({ user }) {
         </div>
 
         {/* Listados */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fit, minmax(min(350px, 100%), 1fr))", gap: '2rem' }}>
           
           <div className="card" style={{ padding: '1.5rem' }}>
             <h3 style={{ margin: '0 0 1rem 0', color: '#0A2342', borderBottom: '2px solid #eee', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -177,7 +177,7 @@ export function MantDashboardAdmin({ user }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {proximos.map(m => (
                   <div key={m.id} onClick={() => openDetailModal(m.id)} style={{ borderLeft: '4px solid #0A2342', paddingLeft: '1rem', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <strong style={{ color: '#333' }}>{m.Instalaciones?.direccion}</strong>
                       <span style={{ fontSize: '0.8rem', color: '#666' }}>{new Date(m.fecha_programada).toLocaleDateString()}</span>
                     </div>
@@ -208,7 +208,7 @@ export function MantDashboardAdmin({ user }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {incidenciasRecientes.map(inc => (
                   <div key={inc.id} onClick={() => openDetailModal(inc.id_mantenimiento)} style={{ borderLeft: '4px solid #E63329', paddingLeft: '1rem', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <strong style={{ color: '#333' }}>{inc.Puertas?.Instalaciones?.direccion || 'Desconocida'}</strong>
                       <span className="pill" style={{ backgroundColor: '#ffe5e5', color: '#E63329', fontSize: '0.7rem' }}>
                         {inc.estado.toUpperCase()}
@@ -232,9 +232,9 @@ export function MantDashboardAdmin({ user }) {
 
       {/* MODAL LIST VIEW */}
       {listModal.open && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '1rem' }}>
+          <div className="card modal-panel" style={{ width: '100%', maxWidth: '600px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
               <h2 style={{ margin: 0, color: '#0A2342' }}>{listModal.title}</h2>
               <button onClick={() => setListModal({ open: false, title: '', filterKey: null })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}>
                 <X size={24} />
@@ -247,7 +247,7 @@ export function MantDashboardAdmin({ user }) {
               ) : (
                 getListToRender().map((item, idx) => (
                   <div key={idx} onClick={() => { setListModal({ ...listModal, open: false }); openDetailModal(item.id_mantenimiento || item.id); }} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: '#f8f9fa' }} onMouseEnter={(e) => e.currentTarget.style.background = '#edf2f7'} onMouseLeave={(e) => e.currentTarget.style.background = '#f8f9fa'}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <strong style={{ color: '#0A2342' }}>{item.Instalaciones?.direccion || item.Puertas?.Instalaciones?.direccion || 'Desconocida'}</strong>
                       {item.fecha_programada && <span style={{ fontSize: '0.85rem', color: '#666' }}>{new Date(item.fecha_programada).toLocaleDateString()}</span>}
                     </div>
@@ -292,9 +292,9 @@ export function MantDashboardTech({ user }) {
 
   return (
     <div style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <img src="/logo.png" style={{ height: '40px', background: 'white', padding: '5px', borderRadius: '4px' }} alt="LUVEMATIC" />
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="responsive-row" style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => navigate('/select-module')} className="btn-primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#6c757d' }}>
             <ArrowLeft size={16} /> Módulos
           </button>
@@ -303,7 +303,7 @@ export function MantDashboardTech({ user }) {
       </div>
 
       {/* Today section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+      <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
         <Calendar size={20} color="#0A2342" />
         <h2 style={{ margin: 0, color: '#0A2342' }}>Hoy — {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
       </div>
@@ -316,13 +316,13 @@ export function MantDashboardTech({ user }) {
         <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {hoy.map(m => (
             <div key={m.id} onClick={() => navigate(`/tecnico/mantenimiento/${m.id}`)} className="card" style={{ padding: '1rem', borderLeft: `4px solid ${FREQ_COLORS[m.frecuencia]}`, cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia], textTransform: 'uppercase' }}>{m.frecuencia}</span>
                     <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 600, color: 'white', backgroundColor: ESTADO_COLORS[m.estado] }}>{ESTADO_LABELS[m.estado]}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem' }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem' }}>
                     <MapPin size={14} /> <strong>{m.Instalaciones?.direccion}</strong>
                   </div>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{m.Instalaciones?.Clientes_Mant?.razon_social}</span>
@@ -336,15 +336,15 @@ export function MantDashboardTech({ user }) {
       {/* Upcoming */}
       {proximos.length > 0 && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem', marginTop: '1rem' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem', marginTop: '1rem' }}>
             <Clock size={18} color="var(--text-muted)" />
             <h3 style={{ margin: 0, color: 'var(--text-muted)' }}>Próximos</h3>
           </div>
           <div style={{ display: 'grid', gap: '0.4rem' }}>
             {proximos.map(m => (
               <div key={m.id} onClick={() => navigate(`/tecnico/mantenimiento/${m.id}`)} className="card" style={{ padding: '0.7rem 1rem', opacity: 0.85, cursor: 'pointer' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, color: 'white', backgroundColor: FREQ_COLORS[m.frecuencia] }}>{m.frecuencia}</span>
                     <span style={{ fontSize: '0.85rem' }}>{m.Instalaciones?.direccion}</span>
                   </div>

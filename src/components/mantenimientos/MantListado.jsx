@@ -143,7 +143,7 @@ export function MantListado({ user }) {
     <div className="dashboard-layout">
       <MantSidebar user={user} />
       <div className="main-content">
-        <div className="header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="header responsive-row" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0 }}>Panel de Grupos y Listado</h1>
           <button className="btn-primary" style={{ width: 'auto', margin: 0, padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setShowGrupoForm(true)}>
             <Plus size={18}/> Nuevo Grupo Temático
@@ -151,10 +151,10 @@ export function MantListado({ user }) {
         </div>
 
         {/* Filters Toolbar */}
-        <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', padding: '0.3rem 0.5rem', borderRadius: '8px', border: '1px solid #ddd' }}>
+        <div className="card responsive-row" style={{ padding: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2rem', background: '#f8f9fa', border: '1px solid #e2e8f0' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', padding: '0.3rem 0.5rem', borderRadius: '8px', border: '1px solid #ddd' }}>
             <button onClick={() => setListPeriod(p => p.month === 0 ? { month: 11, year: p.year - 1 } : { ...p, month: p.month - 1 })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', color: '#0A2342' }}><ChevronLeft size={20}/></button>
-            <h3 style={{ margin: 0, minWidth: '130px', textAlign: 'center', color: '#0A2342', fontSize: '0.95rem' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
+            <h3 style={{ margin: 0, minWidth: "min(130px, 100%)", textAlign: 'center', color: '#0A2342', fontSize: '0.95rem' }}>{MESES[listPeriod.month]} {listPeriod.year}</h3>
             <button onClick={() => setListPeriod(p => p.month === 11 ? { month: 0, year: p.year + 1 } : { ...p, month: p.month + 1 })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', color: '#0A2342' }}><ChevronRight size={20}/></button>
           </div>
           
@@ -164,7 +164,7 @@ export function MantListado({ user }) {
           
           <div style={{ borderLeft: '2px solid #ddd', height: '30px' }}></div>
           
-          <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white', padding: '0.5rem' }}>
+          <select value={filtroFreq} onChange={e => setFiltroFreq(e.target.value)} className="form-input" style={{ flex: 1, minWidth: "min(150px, 100%)", background: 'white', padding: '0.5rem' }}>
             <option value="todos">Todas las frecuencias</option>
             <option value="mensual">Mensual</option>
             <option value="trimestral">Trimestral</option>
@@ -172,7 +172,7 @@ export function MantListado({ user }) {
             <option value="anual">Anual</option>
           </select>
           
-          <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="form-input" style={{ flex: 1, minWidth: '150px', background: 'white', padding: '0.5rem' }}>
+          <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="form-input" style={{ flex: 1, minWidth: "min(150px, 100%)", background: 'white', padding: '0.5rem' }}>
             <option value="todos">Todos los Estados</option>
             {Object.keys(ESTADO_LABELS).map(k => <option key={k} value={k}>{ESTADO_LABELS[k]}</option>)}
           </select>
@@ -180,9 +180,9 @@ export function MantListado({ user }) {
 
         {/* Modal Nuevo Grupo */}
         {showGrupoForm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card" style={{ width: '400px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div className="card modal-panel" style={{ width: '100%', maxWidth: '400px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <h3 style={{ margin: 0 }}>Crear Grupo</h3>
                 <button onClick={() => setShowGrupoForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X/></button>
               </div>
@@ -195,7 +195,7 @@ export function MantListado({ user }) {
                   <label>Descripción / Zonas</label>
                   <input type="text" value={grupoForm.descripcion} onChange={e=>setGrupoForm({...grupoForm, descripcion: e.target.value})} placeholder="Ej: Polígono Industrial..." />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
                   <button type="button" onClick={() => setShowGrupoForm(false)} className="btn-secondary" style={{ width: 'auto' }}>Cancelar</button>
                   <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Guardar</button>
                 </div>
@@ -221,7 +221,7 @@ export function MantListado({ user }) {
                 onDrop={(e) => handleDrop(e, g.id)}
               >
                 {/* Accordion Header */}
-                <div 
+                <div className="responsive-row"
                   onClick={() => setExpandedGrupo(isExpanded ? null : g.id)} 
                   style={{ padding: '1.2rem', background: '#f8f9fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', borderBottom: isExpanded ? '1px solid #eee' : 'none' }}
                 >
@@ -240,7 +240,7 @@ export function MantListado({ user }) {
                     {mantsDelGrupo.length === 0 ? (
                       <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Arrastra mantenimientos aquí o créalos asociados a este grupo en la configuración de la Puerta.</p>
                     ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(350px, 100%), 1fr))", gap: '1rem' }}>
                         {mantsDelGrupo.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} isSelected={selectedMants.includes(m.id)} onToggleSelect={() => toggleSelect(m.id)} />)}
                       </div>
                     )}
@@ -265,7 +265,7 @@ export function MantListado({ user }) {
             {unassignedMants.length === 0 ? (
               <p style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center', margin: '2rem 0' }}>Estupendo, todas las operaciones de este mes están en sus grupos.</p>
             ) : (
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: "repeat(auto-fill, minmax(min(350px, 100%), 1fr))", gap: '1rem' }}>
                  {unassignedMants.map(m => <MantItem key={m.id} m={m} onDragStart={handleDragStart} changeDate={changeDate} onClick={() => setDetailMant(m)} isSelected={selectedMants.includes(m.id)} onToggleSelect={() => toggleSelect(m.id)} />)}
                </div>
             )}
@@ -277,7 +277,7 @@ export function MantListado({ user }) {
 
         {/* Floating Action Bar para Asignación Masiva */}
         {selectedMants.length > 0 && (
-          <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', background: '#0A2342', color: 'white', padding: '1rem 2rem', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 1100, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="bulk-actions" style={{ background: '#0A2342', color: 'white', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 1100, flexWrap: 'wrap', justifyContent: 'center' }}>
             <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{selectedMants.length} seleccionados</span>
             <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)', height: '24px' }}></div>
             
@@ -287,7 +287,7 @@ export function MantListado({ user }) {
               <option value="unassign" style={{ color: 'red' }}>Quitar Técnico (Desasignar)</option>
             </select>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+            <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px' }}>
               <span style={{ fontSize: '0.8rem', opacity: 0.9 }}>2. Fecha (Opcional):</span>
               <input type="date" id="assigned-date-selector" style={{ padding: '0.2rem', borderRadius: '4px', border: 'none', color: '#333', fontSize: '0.8rem' }} />
             </div>
@@ -319,26 +319,26 @@ function MantItem({ m, onDragStart, changeDate, onClick, isSelected, onToggleSel
         <input type="checkbox" checked={isSelected} onChange={(e) => { e.stopPropagation(); onToggleSelect(); }} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', paddingRight: '25px' }} onClick={onClick}>
+      <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', paddingRight: '25px' }} onClick={onClick}>
          <strong style={{ fontSize: '1.1rem', color: '#0A2342', cursor: 'pointer' }}>{m.Instalaciones?.direccion || 'Desconocida'}</strong>
          <span className="pill" style={{ backgroundColor: ESTADO_COLORS[m.estado], color: 'white', fontSize: '0.7rem' }}>{ESTADO_LABELS[m.estado]}</span>
       </div>
 
       <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '12px', cursor: 'pointer' }} onClick={onClick}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
           <DoorOpen size={14} /> Puerta: <strong>{m.Puertas?.tipo || 'Sin Especificar'}</strong> {m.Puertas?.identificador && `(${m.Puertas.identificador})`}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
            <Clock size={14} /> Frecuencia: <span style={{ textTransform: 'capitalize' }}>{m.frecuencia}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
            <User size={14} /> Técnico: <strong style={{ color: m.Usuarios?.nombre_completo ? '#28a745' : '#dc3545' }}>{m.Usuarios?.nombre_completo || 'Sin asignar'}</strong>
         </div>
       </div>
 
-      <div style={{ background: '#f5f7fa', padding: '8px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="responsive-row" style={{ background: '#f5f7fa', padding: '8px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 600 }}>Fecha Prevista:</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <input 
              type="date" 
              value={m.fecha_programada} 
@@ -357,9 +357,9 @@ export function MantDetailModal({ m, onClose }) {
   const accesorios = puerta.accesorios || [];
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
+    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+      <div className="card modal-panel" style={{ width: '100%', maxWidth: '600px', overflowY: 'auto' }}>
+        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
           <div>
             <h2 style={{ margin: 0, color: '#0A2342' }}>Detalle de Mantenimiento</h2>
             <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '0.9rem' }}>{m.Instalaciones?.direccion}</p>
@@ -367,7 +367,7 @@ export function MantDetailModal({ m, onClose }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}><X size={24} /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="responsive-grid responsive-grid--2" style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
             <h4 style={{ margin: '0 0 0.5rem 0', color: '#0A2342' }}>Puerta</h4>
             <div style={{ fontSize: '0.9rem', color: '#555' }}><strong>Tipo:</strong> {puerta.tipo || 'N/A'}</div>
@@ -386,7 +386,7 @@ export function MantDetailModal({ m, onClose }) {
         {accesorios.length === 0 ? (
           <p style={{ fontSize: '0.9rem', color: '#666', fontStyle: 'italic' }}>No hay accesorios extra definidos para esta puerta.</p>
         ) : (
-          <table style={{ width: '100%', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          <div className="table-responsive" tabIndex={0} role="region" aria-label="Accesorios"><table style={{ width: '100%', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
             <thead>
               <tr style={{ background: '#f1f1f1', textAlign: 'left' }}>
                 <th style={{ padding: '8px' }}>Elemento</th>
@@ -403,7 +403,7 @@ export function MantDetailModal({ m, onClose }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
 
       </div>

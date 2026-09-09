@@ -69,7 +69,7 @@ export function CreateAviso({ user }) {
               </select>
             </div>
             <div className="input-group"><label>Descripción del Problema</label><textarea rows="4" value={form.descripcion_problema} onChange={e => setForm({ ...form, descripcion_problema: e.target.value })} required></textarea></div>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => navigate('/admin/avisos')} className="btn-primary" style={{ backgroundColor: '#6c757d', width: 'auto' }}>Cancelar</button>
               <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Guardar Aviso</button>
             </div>
